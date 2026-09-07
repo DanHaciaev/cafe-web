@@ -95,6 +95,7 @@ export const orders = sqliteTable("orders", {
   subtotal: real("subtotal").notNull().default(0),
   total: real("total").notNull().default(0),
   paymentMethod: text("payment_method"),
+  cardTransactionId: text("card_transaction_id"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(current_timestamp)`),

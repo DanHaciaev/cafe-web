@@ -1,10 +1,5 @@
-// Talks to the local print-agent (see /print-agent in the repo root) — a
-// small Node process an operator runs once on the till PC so kitchen tickets
-// can print automatically to the TP805L, no matter where this Next.js app
-// itself is hosted (Vercel, etc). The agent only ever listens on
-// 127.0.0.1, so this call is made directly from the browser, not from a
-// Next.js server action/route.
-const PRINT_AGENT_URL = "http://127.0.0.1:47990";
+import { PRINT_AGENT_URL } from "./agentUrl";
+
 const AGENT_PRINT_TIMEOUT_MS = 20_000;
 
 export async function tryLocalAgentPrint(printUrl: string): Promise<boolean> {

@@ -8,7 +8,9 @@ import TopBar from "./TopBar";
 import ProductGrid from "./ProductGrid";
 import TicketPanel from "./TicketPanel";
 import CustomizeModal from "./CustomizeModal";
+import PaymentModal, { type PaymentResult } from "./PaymentModal";
 import { tryLocalAgentPrint } from "@/lib/print";
+import { PRINT_AGENT_URL } from "@/lib/agentUrl";
 
 type Props = {
   categories: Category[];
@@ -25,6 +27,10 @@ export default function PosApp({ categories, products, productDetails }: Props) 
   const [charging, setCharging] = useState(false);
   const [lastOrderNumber, setLastOrderNumber] = useState<number | null>(null);
   const [printStatus, setPrintStatus] = useState<string | null>(null);
+  const [paymentTerminals, setPaymentTerminals] = useState<
+    { id: string; driver: string; label?: string; terminalConnected?: boolean }[]
+  >([]);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -103,15 +109,39 @@ export default function PosApp({ categories, products, productDetails }: Props) 
     [cart]
   );
 
-  async function handleCharge() {
+  async function openCharge() {
     if (cart.length === 0 || charging) return;
+    try {
+      const res = await fetch(`${PRINT_AGENT_URL}/pos/status`);
+      const data = await res.json();
+      const connected = (data.terminals || []).filter(
+        (t: { terminalConnected?: boolean }) => t.terminalConnected
+      );
+      if (connected.length > 0) {
+        setPaymentTerminals(connected);
+        setShowPaymentModal(true);
+        return;
+      }
+    } catch {
+      // Agent not running or no terminals configured — fall through to cash.
+    }
+    createOrder({ paymentMethod: "cash" });
+  }
+
+  async function createOrder(payment: PaymentResult) {
+    if (cart.length === 0 || charging) return;
+    setShowPaymentModal(false);
     setCharging(true);
     setPrintStatus(null);
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: cart }),
+        body: JSON.stringify({
+          items: cart,
+          paymentMethod: payment.paymentMethod,
+          cardTransactionId: payment.cardTransactionId,
+        }),
       });
       if (!res.ok) throw new Error("Failed to create order");
       const order = await res.json();
@@ -156,7 +186,7 @@ export default function PosApp({ categories, products, productDetails }: Props) 
         charging={charging}
         onChangeQuantity={changeQuantity}
         onRemove={removeItem}
-        onCharge={handleCharge}
+        onCharge={openCharge}
         lastOrderNumber={lastOrderNumber}
         printStatus={printStatus}
       />
@@ -166,6 +196,14 @@ export default function PosApp({ categories, products, productDetails }: Props) 
           detail={modalDetail}
           onCancel={() => setModalProductId(null)}
           onConfirm={addCustomizedItem}
+        />
+      )}
+      {showPaymentModal && (
+        <PaymentModal
+          total={total}
+          terminals={paymentTerminals}
+          onCancel={() => setShowPaymentModal(false)}
+          onConfirm={createOrder}
         />
       )}
     </div>

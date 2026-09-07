@@ -1,0 +1,1 @@
+ALTER TABLE `orders` ADD `card_transaction_id` text;

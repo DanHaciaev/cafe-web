@@ -21,6 +21,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link href="/admin/ingredients" className="hover:text-slate-900">
               Ингредиенты
             </Link>
+            <Link href="/admin/terminal" className="hover:text-slate-900">
+              Терминал
+            </Link>
           </nav>
         </div>
       </header>

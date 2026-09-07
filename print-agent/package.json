@@ -5,9 +5,20 @@
   "description": "Local agent that prints kitchen tickets to the TP805L thermal printer for cafe-web",
   "main": "agent.js",
   "scripts": {
-    "start": "node agent.js"
+    "start": "node agent.js",
+    "bundle": "esbuild agent.js --bundle --platform=node --target=node18 --format=cjs --outfile=bundle.cjs",
+    "build": "npm run bundle && pkg bundle.cjs --targets node18-win-x64 --output dist/cafe-print-agent.exe"
   },
   "dependencies": {
     "puppeteer-core": "^22.15.0"
+  },
+  "pkg": {
+    "targets": [
+      "node18-win-x64"
+    ]
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1",
+    "pkg": "^5.8.1"
   }
 }
