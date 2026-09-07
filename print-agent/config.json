@@ -5,6 +5,7 @@
   "allowedOrigins": [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://cafe.unisim-soft.site"
+    "https://cafe.unisim-soft.site",
+    "https://cafe-web-bay.vercel.app"
   ]
 }
