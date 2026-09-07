@@ -1,0 +1,187 @@
+"use server";
+
+import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { db } from "@/db/client";
+import {
+  categories,
+  products,
+  ingredients,
+  productIngredients,
+  productModifierGroups,
+  modifierGroups,
+  modifierOptions,
+} from "@/db/schema";
+
+function slugify(name: string) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9а-яё]+/gi, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// --- Categories -------------------------------------------------------
+
+export async function createCategory(formData: FormData) {
+  const name = String(formData.get("name") || "").trim();
+  if (!name) return;
+  await db.insert(categories).values({ name, slug: slugify(name) });
+  revalidatePath("/admin/categories");
+  revalidatePath("/");
+}
+
+export async function deleteCategory(formData: FormData) {
+  const id = Number(formData.get("id"));
+  if (!id) return;
+  await db.delete(categories).where(eq(categories.id, id));
+  revalidatePath("/admin/categories");
+  revalidatePath("/");
+}
+
+// --- Ingredients --------------------------------------------------------
+
+export async function createIngredient(formData: FormData) {
+  const name = String(formData.get("name") || "").trim();
+  const extraPrice = Number(formData.get("extraPrice") || 0);
+  if (!name) return;
+  await db.insert(ingredients).values({ name, extraPrice });
+  revalidatePath("/admin/ingredients");
+}
+
+export async function deleteIngredient(formData: FormData) {
+  const id = Number(formData.get("id"));
+  if (!id) return;
+  await db.delete(ingredients).where(eq(ingredients.id, id));
+  revalidatePath("/admin/ingredients");
+}
+
+// --- Products -------------------------------------------------------
+
+export async function createProduct(formData: FormData) {
+  const name = String(formData.get("name") || "").trim();
+  const categoryId = Number(formData.get("categoryId"));
+  const basePrice = Number(formData.get("basePrice") || 0);
+  if (!name || !categoryId) return;
+  await db.insert(products).values({ name, categoryId, basePrice });
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+}
+
+export async function updateProduct(formData: FormData) {
+  const id = Number(formData.get("id"));
+  const name = String(formData.get("name") || "").trim();
+  const categoryId = Number(formData.get("categoryId"));
+  const basePrice = Number(formData.get("basePrice") || 0);
+  const isActive = formData.get("isActive") === "on";
+  if (!id || !name || !categoryId) return;
+  await db
+    .update(products)
+    .set({ name, categoryId, basePrice, isActive })
+    .where(eq(products.id, id));
+  revalidatePath("/admin/products");
+  revalidatePath(`/admin/products/${id}`);
+  revalidatePath("/");
+}
+
+export async function deleteProduct(formData: FormData) {
+  const id = Number(formData.get("id"));
+  if (!id) return;
+  await db.delete(products).where(eq(products.id, id));
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+}
+
+// --- Product <-> modifier groups -----------------------------------------
+
+export async function toggleProductModifierGroup(formData: FormData) {
+  const productId = Number(formData.get("productId"));
+  const groupId = Number(formData.get("groupId"));
+  const enabled = formData.get("enabled") === "true";
+  if (!productId || !groupId) return;
+
+  if (enabled) {
+    await db.insert(productModifierGroups).values({ productId, groupId });
+  } else {
+    const rows = await db
+      .select()
+      .from(productModifierGroups)
+      .where(eq(productModifierGroups.productId, productId));
+    const row = rows.find((r) => r.groupId === groupId);
+    if (row) {
+      await db.delete(productModifierGroups).where(eq(productModifierGroups.id, row.id));
+    }
+  }
+  revalidatePath(`/admin/products/${productId}`);
+  revalidatePath("/");
+}
+
+export async function createModifierGroup(formData: FormData) {
+  const name = String(formData.get("name") || "").trim();
+  const selectionType = String(formData.get("selectionType") || "single") as "single" | "multiple";
+  const required = formData.get("required") === "on";
+  if (!name) return;
+  await db.insert(modifierGroups).values({ name, selectionType, required });
+  revalidatePath("/admin/modifiers");
+  revalidatePath("/admin/products");
+}
+
+export async function deleteModifierGroup(formData: FormData) {
+  const id = Number(formData.get("id"));
+  if (!id) return;
+  await db.delete(modifierGroups).where(eq(modifierGroups.id, id));
+  revalidatePath("/admin/modifiers");
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+}
+
+export async function createModifierOption(formData: FormData) {
+  const groupId = Number(formData.get("groupId"));
+  const name = String(formData.get("name") || "").trim();
+  const priceDelta = Number(formData.get("priceDelta") || 0);
+  const isDefault = formData.get("isDefault") === "on";
+  if (!groupId || !name) return;
+  await db.insert(modifierOptions).values({ groupId, name, priceDelta, isDefault });
+  revalidatePath("/admin/modifiers");
+  revalidatePath("/");
+}
+
+export async function deleteModifierOption(formData: FormData) {
+  const id = Number(formData.get("id"));
+  if (!id) return;
+  await db.delete(modifierOptions).where(eq(modifierOptions.id, id));
+  revalidatePath("/admin/modifiers");
+  revalidatePath("/");
+}
+
+// --- Product <-> ingredients -----------------------------------------
+
+export async function setProductIngredient(formData: FormData) {
+  const productId = Number(formData.get("productId"));
+  const ingredientId = Number(formData.get("ingredientId"));
+  const linked = formData.get("linked") === "true";
+  const isDefault = formData.get("isDefault") === "true";
+  const removable = formData.get("removable") === "true";
+  if (!productId || !ingredientId) return;
+
+  const rows = await db
+    .select()
+    .from(productIngredients)
+    .where(eq(productIngredients.productId, productId));
+  const existing = rows.find((r) => r.ingredientId === ingredientId);
+
+  if (!linked) {
+    if (existing) {
+      await db.delete(productIngredients).where(eq(productIngredients.id, existing.id));
+    }
+  } else if (existing) {
+    await db
+      .update(productIngredients)
+      .set({ isDefault, removable })
+      .where(eq(productIngredients.id, existing.id));
+  } else {
+    await db.insert(productIngredients).values({ productId, ingredientId, isDefault, removable });
+  }
+  revalidatePath(`/admin/products/${productId}`);
+  revalidatePath("/");
+}

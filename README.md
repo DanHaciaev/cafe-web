@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cafe Drive POS
 
-## Getting Started
+POS-приложение для кофейни (coffee drive) на Next.js: сетка меню с категориями,
+кастомизация напитков (сироп/сахар/размер/молоко), еда с редактируемыми
+ингредиентами, оформление заказа и автопечать чека на кухню.
 
-First, run the development server:
+## Стек
+
+- **Next.js 16** (App Router) + TypeScript + Tailwind
+- **SQLite** через Drizzle ORM: `@libsql/client` — локально это обычный файл
+  `local.db`, в проде — бесплатная база [Turso](https://turso.tech) (libSQL,
+  тот же SQL, тот же движок).
+- **print-agent/** — отдельная Node-программа для кассового ПК, печатает
+  кухонные чеки на термопринтер **TP805L**. Работает независимо от того, где
+  хостится сайт (см. `print-agent/README.md`).
+
+## Локальная разработка
 
 ```bash
+npm install
+npm run db:migrate   # применить схему к ./local.db
+npm run db:seed       # наполнить тестовым меню
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Открыть [http://localhost:3000](http://localhost:3000) — касса, и
+[http://localhost:3000/admin](http://localhost:3000/admin) — управление
+меню, категориями, модификаторами и ингредиентами.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Продакшн: Vercel + Turso (бесплатно, без своего сервера)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Зарегистрировать бесплатную БД на [turso.tech](https://turso.tech):
+   ```bash
+   turso db create cafe-web
+   turso db show cafe-web --url
+   turso db tokens create cafe-web
+   ```
+2. В Vercel → Settings → Environment Variables добавить:
+   - `TURSO_DATABASE_URL` — из `turso db show`
+   - `TURSO_AUTH_TOKEN` — из `turso db tokens create`
+3. Применить миграции и сид к продовой базе (один раз, локально с теми же env):
+   ```bash
+   TURSO_DATABASE_URL=... TURSO_AUTH_TOKEN=... npm run db:migrate
+   TURSO_DATABASE_URL=... TURSO_AUTH_TOKEN=... npm run db:seed
+   ```
+4. Задеплоить проект на Vercel (просто импортировать репозиторий).
+5. Домен: в Namecheap добавить CNAME-запись поддомена (например `cafe`) на
+   `cname.vercel-dns.com`, в Vercel добавить этот поддомен в Settings → Domains.
+   Основной домен и другие проекты на нём не затрагиваются.
 
-## Learn More
+## Печать на кухню (TP805L)
 
-To learn more about Next.js, take a look at the following resources:
+Печать чека происходит не с сервера (у Vercel нет доступа к принтеру в кафе),
+а через локальный агент на кассовом ПК — см. `print-agent/README.md` для
+установки. Если агент не запущен, сайт откроет чек в новой вкладке для ручной
+печати через диалог браузера — оформление заказа при этом не ломается.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Структура
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `src/db/schema.ts` — схема: категории, товары, группы модификаторов и их
+  варианты, ингредиенты, заказы.
+- `src/app/page.tsx` + `src/components/pos/*` — касса.
+- `src/app/admin/*` — управление меню.
+- `src/app/print/order/[id]` — печатная версия чека для кухни.
+- `print-agent/` — локальный принт-агент для TP805L.
