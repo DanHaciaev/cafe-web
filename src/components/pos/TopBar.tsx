@@ -2,6 +2,7 @@
 
 import { LayoutGrid, List, Search, ClipboardList } from "lucide-react";
 import clsx from "clsx";
+import Clock from "./Clock";
 
 type Props = {
   search: string;
@@ -22,6 +23,7 @@ export default function TopBar({ search, onSearchChange, view, onViewChange }: P
           className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
         />
       </div>
+      <Clock />
       <button
         type="button"
         className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500 text-white hover:bg-indigo-400"
