@@ -18,7 +18,7 @@ export default function TopBar({ search, onSearchChange, view, onViewChange }: P
         <input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search"
+          placeholder="Поиск"
           className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
         />
       </div>

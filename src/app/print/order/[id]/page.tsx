@@ -23,7 +23,7 @@ export default async function KitchenReceiptPage({ params, searchParams }: Props
     <div className="mx-auto w-[72mm] bg-white p-3 font-mono text-black print:w-full">
       {auto === "1" && <AutoPrint />}
       <div className="text-center">
-        <p className="text-lg font-bold">KITCHEN TICKET</p>
+        <p className="text-lg font-bold">ЧЕК НА КУХНЮ</p>
         <p className="text-2xl font-extrabold">#{order.number}</p>
         <p className="text-xs">
           {createdAt.toLocaleDateString()} {createdAt.toLocaleTimeString()}

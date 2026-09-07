@@ -35,7 +35,7 @@ export default function TicketPanel({
   return (
     <aside className="flex w-96 shrink-0 flex-col border-l border-slate-200 bg-white">
       <div className="flex items-center justify-between border-b border-slate-200 p-4">
-        <h2 className="text-lg font-semibold text-slate-900">New Ticket</h2>
+        <h2 className="text-lg font-semibold text-slate-900">Новый заказ</h2>
         {lastOrderNumber && (
           <span className="text-xs text-slate-400">Посл. заказ #{lastOrderNumber}</span>
         )}
@@ -47,7 +47,7 @@ export default function TicketPanel({
             <ArrowLeft size={26} />
           </div>
           <p className="text-lg font-semibold text-slate-800">
-            Start by adding items to order
+            Начните добавлять товары в заказ
           </p>
         </div>
       ) : (
@@ -123,7 +123,7 @@ export default function TicketPanel({
               : "bg-indigo-500 text-white hover:bg-indigo-400"
           )}
         >
-          {charging ? "Оформление..." : "Charge"}
+          {charging ? "Оформление..." : "Оформить"}
         </button>
       </div>
     </aside>

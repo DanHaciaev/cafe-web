@@ -33,7 +33,7 @@ export default function Sidebar({ categories, selectedCategoryId, onSelect }: Pr
               : "text-indigo-100 hover:bg-white/10"
           )}
         >
-          All
+          Все
         </button>
         {categories.map((cat) => (
           <button
