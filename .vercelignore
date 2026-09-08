@@ -1,0 +1,9 @@
+# These are only needed to install the local print-agent on a till PC —
+# never used by the deployed website itself. Excluding them keeps every
+# Vercel deployment's source snapshot small (Hobby plan has a 10GB total
+# Deployment Storage cap across all deployments, and large binaries here
+# were eating into it on every single push).
+print-agent/dist
+print-agent/maib-bridge
+print-agent/node_modules
+print-agent/bundle.cjs
