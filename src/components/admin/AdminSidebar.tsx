@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   Salad,
   CreditCard,
+  Settings,
   LogOut,
   ArrowLeft,
 } from "lucide-react";
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { href: "/admin/categories", label: "Категории", icon: LayoutGrid },
   { href: "/admin/ingredients", label: "Ингредиенты", icon: Salad },
   { href: "/admin/terminal", label: "Терминал", icon: CreditCard },
+  { href: "/admin/settings", label: "Настройки", icon: Settings },
 ];
 
 export default function AdminSidebar() {

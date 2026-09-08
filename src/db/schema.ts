@@ -6,6 +6,14 @@ import {
   real,
 } from "drizzle-orm/sqlite-core";
 
+// Small key/value store for things like the admin password hash and the
+// session-signing secret — lets the admin password be changed from within
+// the app itself instead of requiring a Vercel env var edit + redeploy.
+export const settings = sqliteTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
 export const categories = sqliteTable("categories", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),

@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import {
   categories,
@@ -12,6 +13,32 @@ import {
   modifierGroups,
   modifierOptions,
 } from "@/db/schema";
+import { checkPassword, setAdminPassword } from "@/lib/adminAuth";
+
+// --- Admin password -------------------------------------------------------
+
+export async function changePassword(formData: FormData) {
+  const current = String(formData.get("current") || "");
+  const next = String(formData.get("next") || "");
+  const confirm = String(formData.get("confirm") || "");
+
+  if (!(await checkPassword(current))) {
+    redirect("/admin/settings?error=current");
+  }
+  if (next.length < 6) {
+    redirect("/admin/settings?error=short");
+  }
+  if (next !== confirm) {
+    redirect("/admin/settings?error=mismatch");
+  }
+
+  await setAdminPassword(next);
+  // Changing the password rotates the session secret, so the cookie this
+  // request came in with is now stale too — send the admin back through
+  // login rather than leaving them on a page they can no longer navigate
+  // away from without hitting the proxy redirect.
+  redirect("/admin/login");
+}
 
 function slugify(name: string) {
   return name
@@ -74,10 +101,11 @@ export async function updateProduct(formData: FormData) {
   const categoryId = Number(formData.get("categoryId"));
   const basePrice = Number(formData.get("basePrice") || 0);
   const isActive = formData.get("isActive") === "on";
+  const imageUrl = String(formData.get("imageUrl") || "").trim();
   if (!id || !name || !categoryId) return;
   await db
     .update(products)
-    .set({ name, categoryId, basePrice, isActive })
+    .set({ name, categoryId, basePrice, isActive, imageUrl: imageUrl || null })
     .where(eq(products.id, id));
   revalidatePath("/admin/products");
   revalidatePath(`/admin/products/${id}`);

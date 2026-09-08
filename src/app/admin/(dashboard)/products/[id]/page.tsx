@@ -11,6 +11,7 @@ import {
 import { updateProduct, toggleProductModifierGroup, setProductIngredient } from "@/app/admin/actions";
 import AutoSubmitCheckbox from "@/components/admin/AutoSubmitCheckbox";
 import IngredientAssignmentSelect from "@/components/admin/IngredientAssignmentSelect";
+import ProductImageField from "@/components/admin/ProductImageField";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,7 @@ export default async function ProductEditPage({ params }: { params: Promise<{ id
         className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:grid-cols-2"
       >
         <input type="hidden" name="id" value={product.id} />
+        <ProductImageField defaultValue={product.imageUrl} />
         <label className="flex flex-col gap-1 text-sm text-slate-600">
           Название
           <input

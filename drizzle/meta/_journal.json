@@ -15,6 +15,13 @@
       "when": 1788788469269,
       "tag": "0001_oval_nextwave",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788874168087,
+      "tag": "0002_misty_maelstrom",
+      "breakpoints": true
     }
   ]
 }

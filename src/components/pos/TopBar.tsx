@@ -9,9 +9,18 @@ type Props = {
   onSearchChange: (v: string) => void;
   view: "grid" | "list";
   onViewChange: (v: "grid" | "list") => void;
+  openOrdersCount: number;
+  onOpenOrdersClick: () => void;
 };
 
-export default function TopBar({ search, onSearchChange, view, onViewChange }: Props) {
+export default function TopBar({
+  search,
+  onSearchChange,
+  view,
+  onViewChange,
+  openOrdersCount,
+  onOpenOrdersClick,
+}: Props) {
   return (
     <div className="flex items-center gap-3 border-b border-slate-200 bg-white p-4">
       <div className="flex flex-1 items-center gap-2 rounded-xl bg-slate-100 px-4 py-2.5">
@@ -26,10 +35,16 @@ export default function TopBar({ search, onSearchChange, view, onViewChange }: P
       <Clock />
       <button
         type="button"
-        className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500 text-white hover:bg-indigo-400"
+        onClick={onOpenOrdersClick}
+        className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-500 text-white hover:bg-indigo-400"
         aria-label="Открытые заказы"
       >
         <ClipboardList size={18} />
+        {openOrdersCount > 0 && (
+          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">
+            {openOrdersCount}
+          </span>
+        )}
       </button>
       <div className="flex items-center gap-1 rounded-xl bg-indigo-500 p-1">
         <button

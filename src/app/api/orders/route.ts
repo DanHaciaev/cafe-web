@@ -30,6 +30,7 @@ const orderSchema = z.object({
   items: z.array(cartItemSchema).min(1),
   paymentMethod: z.string().optional(),
   cardTransactionId: z.string().optional(),
+  hold: z.boolean().optional(),
 });
 
 export async function POST(request: Request) {
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
-  const { items, paymentMethod, cardTransactionId } = parsed.data;
+  const { items, paymentMethod, cardTransactionId, hold } = parsed.data;
 
   const total = items.reduce((sum, item) => {
     const modifiersTotal = item.modifiers.reduce((s, m) => s + m.priceDelta, 0);
@@ -55,11 +56,11 @@ export async function POST(request: Request) {
     .insert(orders)
     .values({
       number: nextNumber,
-      status: "paid",
+      status: hold ? "open" : "paid",
       subtotal: total,
       total,
-      paymentMethod,
-      cardTransactionId,
+      paymentMethod: hold ? undefined : paymentMethod,
+      cardTransactionId: hold ? undefined : cardTransactionId,
     })
     .returning();
 

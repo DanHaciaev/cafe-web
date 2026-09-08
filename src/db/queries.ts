@@ -154,6 +154,21 @@ export async function getOrderForReceipt(orderId: number) {
   return { order, items: itemsWithDetails };
 }
 
+export async function getOpenOrders() {
+  const openOrders = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.status, "open"))
+    .orderBy(orders.createdAt);
+
+  const result = [];
+  for (const order of openOrders) {
+    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id));
+    result.push({ ...order, items });
+  }
+  return result;
+}
+
 export async function getTodayStats() {
   const [row] = await db
     .select({

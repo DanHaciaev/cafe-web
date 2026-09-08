@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import type { ProductDetail } from "@/db/queries";
 import type { Category, Product, CartItem } from "@/lib/types";
 import Sidebar from "./Sidebar";
@@ -9,6 +9,7 @@ import ProductGrid from "./ProductGrid";
 import TicketPanel from "./TicketPanel";
 import CustomizeModal from "./CustomizeModal";
 import PaymentModal, { type PaymentResult } from "./PaymentModal";
+import OpenOrdersModal, { type OpenOrder } from "./OpenOrdersModal";
 import { tryLocalAgentPrint } from "@/lib/print";
 import { PRINT_AGENT_URL } from "@/lib/agentUrl";
 
@@ -31,6 +32,11 @@ export default function PosApp({ categories, products, productDetails }: Props) 
     { id: string; driver: string; label?: string; terminalConnected?: boolean }[]
   >([]);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [holding, setHolding] = useState(false);
+  const [openOrders, setOpenOrders] = useState<OpenOrder[]>([]);
+  const [loadingOpenOrders, setLoadingOpenOrders] = useState(false);
+  const [showOpenOrdersModal, setShowOpenOrdersModal] = useState(false);
+  const [payingOpenOrder, setPayingOpenOrder] = useState<OpenOrder | null>(null);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -109,21 +115,38 @@ export default function PosApp({ categories, products, productDetails }: Props) 
     [cart]
   );
 
-  async function openCharge() {
-    if (cart.length === 0 || charging) return;
+  const refreshOpenOrders = useCallback(async () => {
+    try {
+      const res = await fetch("/api/orders/open");
+      if (!res.ok) return;
+      setOpenOrders(await res.json());
+    } catch {
+      // Ignore — badge just stays at its last known count.
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshOpenOrders();
+  }, [refreshOpenOrders]);
+
+  async function fetchConnectedTerminals() {
     try {
       const res = await fetch(`${PRINT_AGENT_URL}/pos/status`);
       const data = await res.json();
-      const connected = (data.terminals || []).filter(
-        (t: { terminalConnected?: boolean }) => t.terminalConnected
-      );
-      if (connected.length > 0) {
-        setPaymentTerminals(connected);
-        setShowPaymentModal(true);
-        return;
-      }
+      return (data.terminals || []).filter((t: { terminalConnected?: boolean }) => t.terminalConnected);
     } catch {
-      // Agent not running or no terminals configured — fall through to cash.
+      return [];
+    }
+  }
+
+  async function openCharge() {
+    if (cart.length === 0 || charging) return;
+    const connected = await fetchConnectedTerminals();
+    if (connected.length > 0) {
+      setPaymentTerminals(connected);
+      setPayingOpenOrder(null);
+      setShowPaymentModal(true);
+      return;
     }
     createOrder({ paymentMethod: "cash" });
   }
@@ -147,22 +170,97 @@ export default function PosApp({ categories, products, productDetails }: Props) 
       const order = await res.json();
       setLastOrderNumber(order.number);
       setCart([]);
-
-      const printUrl = `${window.location.origin}/print/order/${order.id}`;
-      const printedByAgent = await tryLocalAgentPrint(printUrl);
-      if (printedByAgent) {
-        setPrintStatus(`Заказ #${order.number} отправлен на кухонный принтер`);
-      } else {
-        setPrintStatus(
-          `Заказ #${order.number} создан. Локальный принт-агент не найден — откройте квитанцию вручную`
-        );
-        window.open(`${printUrl}?auto=1`, "_blank");
-      }
+      await printReceipt(order);
     } catch (err) {
       console.error(err);
       setPrintStatus("Не удалось создать заказ. Попробуйте ещё раз.");
     } finally {
       setCharging(false);
+    }
+  }
+
+  async function printReceipt(order: { id: number; number: number }) {
+    const printUrl = `${window.location.origin}/print/order/${order.id}`;
+    const printedByAgent = await tryLocalAgentPrint(printUrl);
+    if (printedByAgent) {
+      setPrintStatus(`Заказ #${order.number} отправлен на кухонный принтер`);
+    } else {
+      setPrintStatus(
+        `Заказ #${order.number} создан. Локальный принт-агент не найден — откройте квитанцию вручную`
+      );
+      window.open(`${printUrl}?auto=1`, "_blank");
+    }
+  }
+
+  async function holdOrder() {
+    if (cart.length === 0 || holding) return;
+    setHolding(true);
+    setPrintStatus(null);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: cart, hold: true }),
+      });
+      if (!res.ok) throw new Error("Failed to hold order");
+      const order = await res.json();
+      setLastOrderNumber(order.number);
+      setCart([]);
+      await printReceipt(order);
+      refreshOpenOrders();
+    } catch (err) {
+      console.error(err);
+      setPrintStatus("Не удалось отложить заказ. Попробуйте ещё раз.");
+    } finally {
+      setHolding(false);
+    }
+  }
+
+  async function openOpenOrdersModal() {
+    setShowOpenOrdersModal(true);
+    setLoadingOpenOrders(true);
+    await refreshOpenOrders();
+    setLoadingOpenOrders(false);
+  }
+
+  async function startPayOpenOrder(order: OpenOrder) {
+    const connected = await fetchConnectedTerminals();
+    if (connected.length > 0) {
+      setPaymentTerminals(connected);
+      setPayingOpenOrder(order);
+      setShowPaymentModal(true);
+      return;
+    }
+    payOpenOrder(order, { paymentMethod: "cash" });
+  }
+
+  async function payOpenOrder(order: OpenOrder, payment: PaymentResult) {
+    setShowPaymentModal(false);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/pay`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentMethod: payment.paymentMethod,
+          cardTransactionId: payment.cardTransactionId,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to pay order");
+      setOpenOrders((prev) => prev.filter((o) => o.id !== order.id));
+      setPrintStatus(`Заказ #${order.number} оплачен`);
+    } catch (err) {
+      console.error(err);
+      setPrintStatus("Не удалось оплатить заказ. Попробуйте ещё раз.");
+    } finally {
+      setPayingOpenOrder(null);
+    }
+  }
+
+  function handlePaymentConfirm(payment: PaymentResult) {
+    if (payingOpenOrder) {
+      payOpenOrder(payingOpenOrder, payment);
+    } else {
+      createOrder(payment);
     }
   }
 
@@ -177,7 +275,14 @@ export default function PosApp({ categories, products, productDetails }: Props) 
         onSelect={setSelectedCategoryId}
       />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <TopBar search={search} onSearchChange={setSearch} view={view} onViewChange={setView} />
+        <TopBar
+          search={search}
+          onSearchChange={setSearch}
+          view={view}
+          onViewChange={setView}
+          openOrdersCount={openOrders.length}
+          onOpenOrdersClick={openOpenOrdersModal}
+        />
         <ProductGrid products={filteredProducts} view={view} onProductClick={handleProductClick} />
       </div>
       <TicketPanel
@@ -187,6 +292,8 @@ export default function PosApp({ categories, products, productDetails }: Props) 
         onChangeQuantity={changeQuantity}
         onRemove={removeItem}
         onCharge={openCharge}
+        onHold={holdOrder}
+        holding={holding}
         lastOrderNumber={lastOrderNumber}
         printStatus={printStatus}
       />
@@ -198,12 +305,23 @@ export default function PosApp({ categories, products, productDetails }: Props) 
           onConfirm={addCustomizedItem}
         />
       )}
+      {showOpenOrdersModal && (
+        <OpenOrdersModal
+          orders={openOrders}
+          loading={loadingOpenOrders}
+          onClose={() => setShowOpenOrdersModal(false)}
+          onPay={startPayOpenOrder}
+        />
+      )}
       {showPaymentModal && (
         <PaymentModal
-          total={total}
+          total={payingOpenOrder ? payingOpenOrder.total : total}
           terminals={paymentTerminals}
-          onCancel={() => setShowPaymentModal(false)}
-          onConfirm={createOrder}
+          onCancel={() => {
+            setShowPaymentModal(false);
+            setPayingOpenOrder(null);
+          }}
+          onConfirm={handlePaymentConfirm}
         />
       )}
     </div>

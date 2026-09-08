@@ -12,6 +12,8 @@ type Props = {
   onChangeQuantity: (cartId: string, delta: number) => void;
   onRemove: (cartId: string) => void;
   onCharge: () => void;
+  onHold: () => void;
+  holding: boolean;
   lastOrderNumber: number | null;
   printStatus: string | null;
 };
@@ -29,6 +31,8 @@ export default function TicketPanel({
   onChangeQuantity,
   onRemove,
   onCharge,
+  onHold,
+  holding,
   lastOrderNumber,
   printStatus,
 }: Props) {
@@ -112,19 +116,34 @@ export default function TicketPanel({
           <span>Итого</span>
           <span>{formatPrice(total)}</span>
         </div>
-        <button
-          type="button"
-          disabled={cart.length === 0 || charging}
-          onClick={onCharge}
-          className={clsx(
-            "w-full rounded-xl py-4 text-base font-semibold transition-colors",
-            cart.length === 0 || charging
-              ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-              : "bg-indigo-500 text-white hover:bg-indigo-400"
-          )}
-        >
-          {charging ? "Оформление..." : "Оформить"}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={cart.length === 0 || charging || holding}
+            onClick={onHold}
+            className={clsx(
+              "flex-1 rounded-xl py-4 text-sm font-semibold transition-colors",
+              cart.length === 0 || charging || holding
+                ? "bg-slate-100 text-slate-300 cursor-not-allowed"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+            )}
+          >
+            {holding ? "..." : "Отложить"}
+          </button>
+          <button
+            type="button"
+            disabled={cart.length === 0 || charging || holding}
+            onClick={onCharge}
+            className={clsx(
+              "flex-1 rounded-xl py-4 text-base font-semibold transition-colors",
+              cart.length === 0 || charging || holding
+                ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                : "bg-indigo-500 text-white hover:bg-indigo-400"
+            )}
+          >
+            {charging ? "Оформление..." : "Оформить"}
+          </button>
+        </div>
       </div>
     </aside>
   );
