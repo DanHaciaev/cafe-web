@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft, SlidersHorizontal, Salad } from "lucide-react";
 import {
   getActiveProducts,
   getAllIngredients,
@@ -6,9 +8,11 @@ import {
   getCategories,
   getProductDetail,
 } from "@/db/queries";
-import { updateProduct, toggleProductModifierGroup, setProductIngredient } from "../../actions";
+import { updateProduct, toggleProductModifierGroup, setProductIngredient } from "@/app/admin/actions";
 import AutoSubmitCheckbox from "@/components/admin/AutoSubmitCheckbox";
 import IngredientAssignmentSelect from "@/components/admin/IngredientAssignmentSelect";
+
+export const dynamic = "force-dynamic";
 
 export default async function ProductEditPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -28,10 +32,22 @@ export default async function ProductEditPage({ params }: { params: Promise<{ id
   const linkedGroupIds = new Set(detail.modifierGroups.map((g) => g.id));
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-xl font-semibold text-slate-900">{product.name}</h1>
+    <div className="space-y-6">
+      <div>
+        <Link
+          href="/admin/products"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+        >
+          <ArrowLeft size={16} />
+          Назад к товарам
+        </Link>
+        <h1 className="mt-2 text-2xl font-semibold text-slate-900">{product.name}</h1>
+      </div>
 
-      <form action={updateProduct} className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
+      <form
+        action={updateProduct}
+        className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:grid-cols-2"
+      >
         <input type="hidden" name="id" value={product.id} />
         <label className="flex flex-col gap-1 text-sm text-slate-600">
           Название
@@ -73,16 +89,17 @@ export default async function ProductEditPage({ params }: { params: Promise<{ id
         </label>
         <button
           type="submit"
-          className="sm:col-span-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400"
+          className="sm:col-span-2 rounded-lg bg-indigo-500 py-2.5 text-sm font-semibold text-white hover:bg-indigo-400"
         >
           Сохранить
         </button>
       </form>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">
-          Модификаторы (сироп, сахар, размер, молоко...)
-        </h2>
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <SlidersHorizontal size={18} className="text-indigo-500" />
+          <h2 className="text-sm font-semibold text-slate-900">Модификаторы (сироп, сахар, размер, молоко...)</h2>
+        </div>
         <div className="flex flex-col gap-2">
           {allModifierGroups.map((group) => (
             <AutoSubmitCheckbox
@@ -102,8 +119,11 @@ export default async function ProductEditPage({ params }: { params: Promise<{ id
         </div>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">Ингредиенты</h2>
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <Salad size={18} className="text-indigo-500" />
+          <h2 className="text-sm font-semibold text-slate-900">Ингредиенты</h2>
+        </div>
         <div className="flex flex-col gap-2">
           {allIngredients.map((ing) => {
             const linked = detail.ingredients.find((i) => i.id === ing.id);
@@ -115,7 +135,7 @@ export default async function ProductEditPage({ params }: { params: Promise<{ id
                 : "default_fixed"
               : "extra";
             return (
-              <div key={ing.id} className="flex items-center justify-between gap-4">
+              <div key={ing.id} className="flex items-center justify-between gap-4 rounded-lg px-2 py-1 hover:bg-slate-50">
                 <span className="text-sm text-slate-700">{ing.name}</span>
                 <IngredientAssignmentSelect
                   action={setProductIngredient}

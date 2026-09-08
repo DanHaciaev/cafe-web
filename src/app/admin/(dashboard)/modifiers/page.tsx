@@ -1,10 +1,11 @@
+import { SlidersHorizontal, Plus, Trash2 } from "lucide-react";
 import { getAllModifierGroupsWithOptions } from "@/db/queries";
 import {
   createModifierGroup,
   deleteModifierGroup,
   createModifierOption,
   deleteModifierOption,
-} from "../actions";
+} from "@/app/admin/actions";
 import { formatPrice } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -14,27 +15,38 @@ export default async function ModifiersPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-slate-900">Модификаторы</h1>
-      <p className="text-sm text-slate-500">
-        Группы вариантов (сироп, сахар, размер, молоко), которые можно привязать
-        к товарам на странице товара.
-      </p>
+      <div>
+        <h1 className="text-2xl font-semibold text-slate-900">Модификаторы</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Группы вариантов (сироп, сахар, размер, молоко), которые можно привязать к
+          товарам на странице товара.
+        </p>
+      </div>
 
-      <div className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-2">
         {groups.map((group) => (
-          <div key={group.id} className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-slate-900">{group.name}</p>
-                <p className="text-xs text-slate-400">
-                  {group.selectionType === "single" ? "один вариант" : "несколько вариантов"}
-                  {group.required ? " · обязательно" : ""}
-                </p>
+          <div key={group.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <SlidersHorizontal size={16} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{group.name}</p>
+                  <p className="text-xs text-slate-400">
+                    {group.selectionType === "single" ? "один вариант" : "несколько вариантов"}
+                    {group.required ? " · обязательно" : ""}
+                  </p>
+                </div>
               </div>
               <form action={deleteModifierGroup}>
                 <input type="hidden" name="id" value={group.id} />
-                <button type="submit" className="text-xs font-medium text-red-500 hover:text-red-600">
-                  Удалить группу
+                <button
+                  type="submit"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500"
+                  aria-label="Удалить группу"
+                >
+                  <Trash2 size={15} />
                 </button>
               </form>
             </div>
@@ -70,7 +82,7 @@ export default async function ModifiersPage() {
                 name="name"
                 placeholder="Вариант (например Ванильный сироп)"
                 required
-                className="flex-1 min-w-[160px] rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-indigo-400"
+                className="flex-1 min-w-40 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-indigo-400"
               />
               <input
                 name="priceDelta"
@@ -94,7 +106,7 @@ export default async function ModifiersPage() {
           </div>
         ))}
         {groups.length === 0 && (
-          <p className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-400">
+          <p className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-400 lg:col-span-2">
             Групп пока нет
           </p>
         )}
@@ -102,13 +114,13 @@ export default async function ModifiersPage() {
 
       <form
         action={createModifierGroup}
-        className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-4"
+        className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
       >
         <input
           name="name"
           placeholder="Название группы (например Сироп)"
           required
-          className="flex-1 min-w-[160px] rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+          className="flex-1 min-w-40 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
         />
         <select
           name="selectionType"
@@ -122,8 +134,9 @@ export default async function ModifiersPage() {
         </label>
         <button
           type="submit"
-          className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400"
+          className="flex items-center gap-1.5 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400"
         >
+          <Plus size={16} />
           Добавить группу
         </button>
       </form>

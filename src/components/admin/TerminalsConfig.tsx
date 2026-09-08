@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AlertTriangle, CreditCard, Plus, Trash2 } from "lucide-react";
 import { PRINT_AGENT_URL } from "@/lib/agentUrl";
 
 type Driver = "MAIB" | "VB" | "MICB" | "FCB";
@@ -88,11 +89,14 @@ export default function TerminalsConfig() {
 
   if (agentStatus === "offline") {
     return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-        Локальный агент печати не найден на <span className="font-mono">127.0.0.1:47991</span>.
-        Настройка терминалов возможна только на кассовом компьютере, где установлен
-        print-agent — откройте эту страницу прямо на нём. См.{" "}
-        <span className="font-mono">print-agent/README.md</span>.
+      <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800 shadow-sm">
+        <AlertTriangle size={20} className="mt-0.5 shrink-0" />
+        <p>
+          Локальный агент печати не найден на <span className="font-mono">127.0.0.1:47991</span>.
+          Настройка терминалов возможна только на кассовом компьютере, где установлен
+          print-agent — откройте эту страницу прямо на нём. См.{" "}
+          <span className="font-mono">print-agent/README.md</span>.
+        </p>
       </div>
     );
   }
@@ -106,7 +110,15 @@ export default function TerminalsConfig() {
 
       <div className="flex flex-col gap-3">
         {terminals.map((t, i) => (
-          <div key={i} className="grid gap-2 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-2">
+          <div key={i} className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:grid-cols-2">
+            <div className="flex items-center gap-2 sm:col-span-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                <CreditCard size={16} />
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Терминал {i + 1}
+              </span>
+            </div>
             <label className="flex flex-col gap-1 text-sm text-slate-600">
               Банк / драйвер
               <select
@@ -165,15 +177,16 @@ export default function TerminalsConfig() {
               <button
                 type="button"
                 onClick={() => removeTerminal(i)}
-                className="text-xs font-medium text-red-500 hover:text-red-600"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500"
+                aria-label="Удалить"
               >
-                Удалить
+                <Trash2 size={15} />
               </button>
             </div>
           </div>
         ))}
         {terminals.length === 0 && (
-          <p className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-400">
+          <p className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-400 shadow-sm">
             Терминалы не настроены — оплата будет доступна только наличными.
           </p>
         )}
@@ -183,9 +196,10 @@ export default function TerminalsConfig() {
         <button
           type="button"
           onClick={addTerminal}
-          className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
         >
-          + Добавить терминал
+          <Plus size={16} />
+          Добавить терминал
         </button>
         <button
           type="button"

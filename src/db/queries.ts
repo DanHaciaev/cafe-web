@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "./client";
 import {
   categories,
@@ -152,4 +152,26 @@ export async function getOrderForReceipt(orderId: number) {
   }
 
   return { order, items: itemsWithDetails };
+}
+
+export async function getTodayStats() {
+  const [row] = await db
+    .select({
+      count: sql<number>`count(*)`,
+      total: sql<number>`coalesce(sum(${orders.total}), 0)`,
+    })
+    .from(orders)
+    .where(sql`date(${orders.createdAt}) = date('now')`);
+  return row ?? { count: 0, total: 0 };
+}
+
+export async function getDashboardCounts() {
+  const [[{ count: productCount }], [{ count: categoryCount }], [{ count: ingredientCount }], [{ count: modifierGroupCount }]] =
+    await Promise.all([
+      db.select({ count: sql<number>`count(*)` }).from(products),
+      db.select({ count: sql<number>`count(*)` }).from(categories),
+      db.select({ count: sql<number>`count(*)` }).from(ingredients),
+      db.select({ count: sql<number>`count(*)` }).from(modifierGroups),
+    ]);
+  return { productCount, categoryCount, ingredientCount, modifierGroupCount };
 }
