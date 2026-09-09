@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Minus, Plus, X } from "lucide-react";
+import { ArrowLeft, ExternalLink, Minus, Plus, X } from "lucide-react";
 import clsx from "clsx";
 import type { CartItem } from "@/lib/types";
 import { formatPrice } from "@/lib/format";
@@ -16,6 +16,7 @@ type Props = {
   holding: boolean;
   lastOrderNumber: number | null;
   printStatus: string | null;
+  printUrl: string | null;
 };
 
 function itemUnitPrice(item: CartItem) {
@@ -35,6 +36,7 @@ export default function TicketPanel({
   holding,
   lastOrderNumber,
   printStatus,
+  printUrl,
 }: Props) {
   return (
     <aside className="flex w-96 shrink-0 flex-col border-l border-slate-200 bg-white">
@@ -110,7 +112,23 @@ export default function TicketPanel({
 
       <div className="border-t border-slate-200 p-4">
         {printStatus && (
-          <p className="mb-3 text-xs text-slate-500">{printStatus}</p>
+          <p className="mb-3 text-xs text-slate-500">
+            {printStatus}
+            {printUrl && (
+              <>
+                {" "}
+                <a
+                  href={printUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-700"
+                >
+                  открыть квитанцию
+                  <ExternalLink size={11} />
+                </a>
+              </>
+            )}
+          </p>
         )}
         <div className="mb-3 flex items-center justify-between text-base font-semibold text-slate-900">
           <span>Итого</span>

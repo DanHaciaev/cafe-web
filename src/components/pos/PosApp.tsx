@@ -28,6 +28,7 @@ export default function PosApp({ categories, products, productDetails }: Props) 
   const [charging, setCharging] = useState(false);
   const [lastOrderNumber, setLastOrderNumber] = useState<number | null>(null);
   const [printStatus, setPrintStatus] = useState<string | null>(null);
+  const [lastPrintUrl, setLastPrintUrl] = useState<string | null>(null);
   const [paymentTerminals, setPaymentTerminals] = useState<
     { id: string; driver: string; label?: string; terminalConnected?: boolean }[]
   >([]);
@@ -156,6 +157,7 @@ export default function PosApp({ categories, products, productDetails }: Props) 
     setShowPaymentModal(false);
     setCharging(true);
     setPrintStatus(null);
+    setLastPrintUrl(null);
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -184,10 +186,13 @@ export default function PosApp({ categories, products, productDetails }: Props) 
     const printedByAgent = await tryLocalAgentPrint(printUrl);
     if (printedByAgent) {
       setPrintStatus(`Заказ #${order.number} отправлен на кухонный принтер`);
+      setLastPrintUrl(null);
     } else {
-      setPrintStatus(
-        `Заказ #${order.number} создан. Локальный принт-агент не найден — откройте квитанцию вручную`
-      );
+      setPrintStatus(`Заказ #${order.number} создан. Локальный принт-агент не найден —`);
+      setLastPrintUrl(`${printUrl}?auto=1`);
+      // Works when the browser still treats this as part of the user's own
+      // click; if it silently blocks the popup, the link below is what
+      // actually gets used.
       window.open(`${printUrl}?auto=1`, "_blank");
     }
   }
@@ -196,6 +201,7 @@ export default function PosApp({ categories, products, productDetails }: Props) 
     if (cart.length === 0 || holding) return;
     setHolding(true);
     setPrintStatus(null);
+    setLastPrintUrl(null);
     try {
       const res = await fetch("/api/orders", {
         method: "POST",
@@ -248,6 +254,7 @@ export default function PosApp({ categories, products, productDetails }: Props) 
       if (!res.ok) throw new Error("Failed to pay order");
       setOpenOrders((prev) => prev.filter((o) => o.id !== order.id));
       setPrintStatus(`Заказ #${order.number} оплачен`);
+      setLastPrintUrl(null);
     } catch (err) {
       console.error(err);
       setPrintStatus("Не удалось оплатить заказ. Попробуйте ещё раз.");
@@ -292,6 +299,14 @@ export default function PosApp({ categories, products, productDetails }: Props) 
             onConfirm={addCustomizedItem}
           />
         )}
+        {showOpenOrdersModal && (
+          <OpenOrdersModal
+            orders={openOrders}
+            loading={loadingOpenOrders}
+            onClose={() => setShowOpenOrdersModal(false)}
+            onPay={startPayOpenOrder}
+          />
+        )}
       </div>
       <TicketPanel
         cart={cart}
@@ -304,15 +319,8 @@ export default function PosApp({ categories, products, productDetails }: Props) 
         holding={holding}
         lastOrderNumber={lastOrderNumber}
         printStatus={printStatus}
+        printUrl={lastPrintUrl}
       />
-      {showOpenOrdersModal && (
-        <OpenOrdersModal
-          orders={openOrders}
-          loading={loadingOpenOrders}
-          onClose={() => setShowOpenOrdersModal(false)}
-          onPay={startPayOpenOrder}
-        />
-      )}
       {showPaymentModal && (
         <PaymentModal
           total={payingOpenOrder ? payingOpenOrder.total : total}

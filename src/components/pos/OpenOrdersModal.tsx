@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Clock, CreditCard } from "lucide-react";
+import { ClipboardList, X, Clock, CreditCard } from "lucide-react";
 import { formatPrice } from "@/lib/format";
 
 type OpenOrderItem = {
@@ -27,26 +27,29 @@ type Props = {
 
 export default function OpenOrdersModal({ orders, loading, onClose, onPay }: Props) {
   return (
-    <div className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-[2px]">
-      <div className="animate-modal-in flex max-h-[85vh] w-full max-w-lg flex-col rounded-3xl bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 p-5">
-          <h3 className="text-lg font-semibold text-slate-900">Открытые заказы</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-            aria-label="Закрыть"
-          >
-            <X size={20} />
-          </button>
+    <div className="animate-overlay-in absolute inset-0 z-40 flex flex-col bg-white">
+      <div className="flex items-center gap-4 border-b border-slate-100 px-6 py-4 sm:px-10">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500">
+          <ClipboardList size={20} />
         </div>
+        <h3 className="flex-1 text-xl font-semibold text-slate-900">Открытые заказы</h3>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+          aria-label="Закрыть"
+        >
+          <X size={22} />
+        </button>
+      </div>
 
-        <div className="flex-1 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto px-6 py-6 sm:px-10">
+        <div className="mx-auto w-full max-w-3xl">
           {loading && <p className="text-center text-sm text-slate-400">Загрузка...</p>}
           {!loading && orders.length === 0 && (
             <p className="text-center text-sm text-slate-400">Отложенных заказов нет</p>
           )}
-          <div className="flex flex-col gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             {orders.map((order) => (
               <div
                 key={order.id}
