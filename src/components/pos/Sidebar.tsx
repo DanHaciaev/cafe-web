@@ -26,7 +26,7 @@ export default function Sidebar({
         collapsed ? "w-18" : "w-60"
       )}
     >
-      <div className="p-4">
+      <div className={clsx("p-4", collapsed && "flex justify-center")}>
         <button
           type="button"
           onClick={onToggleCollapsed}
@@ -37,7 +37,36 @@ export default function Sidebar({
           <Menu size={20} />
         </button>
       </div>
-      {!collapsed && (
+
+      {collapsed ? (
+        <nav className="mt-2 flex flex-1 flex-col items-center gap-1.5 overflow-y-auto px-2">
+          <button
+            type="button"
+            onClick={() => onSelect("all")}
+            title="Все"
+            className={clsx(
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold transition-colors",
+              selectedCategoryId === "all" ? "bg-white text-[#1e1b4b]" : "text-indigo-100 hover:bg-white/10"
+            )}
+          >
+            Все
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              onClick={() => onSelect(cat.id)}
+              title={cat.name}
+              className={clsx(
+                "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold uppercase transition-colors",
+                selectedCategoryId === cat.id ? "bg-white text-[#1e1b4b]" : "text-indigo-100 hover:bg-white/10"
+              )}
+            >
+              {cat.name.slice(0, 2)}
+            </button>
+          ))}
+        </nav>
+      ) : (
         <nav className="mt-2 flex flex-1 flex-col gap-1 overflow-y-auto px-3">
           <button
             type="button"
