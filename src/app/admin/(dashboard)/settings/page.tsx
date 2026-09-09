@@ -1,5 +1,6 @@
-import { KeyRound } from "lucide-react";
+import { KeyRound, Printer, Download } from "lucide-react";
 import { changePassword } from "@/app/admin/actions";
+import { PRINT_AGENT_DOWNLOAD_URL } from "@/lib/printAgentDownload";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +80,31 @@ export default async function SettingsPage({ searchParams }: Props) {
           Сохранить пароль
         </button>
       </form>
+
+      <div className="max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="flex items-center gap-2 text-slate-900">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+            <Printer size={18} />
+          </div>
+          <h2 className="text-sm font-semibold">Print-agent для кассы</h2>
+        </div>
+        <p className="text-sm text-slate-500">
+          Программа для кассового ПК — печатает чеки на термопринтер TP805L и запускает
+          оплату на банковском терминале. Устанавливается один раз на компьютер, где физически
+          стоит принтер.
+        </p>
+        <a
+          href={PRINT_AGENT_DOWNLOAD_URL}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-indigo-500 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
+        >
+          <Download size={16} />
+          Скачать установщик (.zip)
+        </a>
+        <p className="text-xs text-slate-400">
+          В архиве: install.bat — запустите на кассовом ПК от имени администратора. Подробности —
+          в README.md внутри архива.
+        </p>
+      </div>
     </div>
   );
 }
