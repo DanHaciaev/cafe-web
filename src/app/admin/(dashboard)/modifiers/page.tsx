@@ -68,47 +68,66 @@ export default async function ModifiersPage({ searchParams }: Props) {
         <div className="space-y-4">
           {selectedGroup ? (
             <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 p-5">
-                <div className="mb-3 flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                    <SlidersHorizontal size={16} />
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-900">{selectedGroup.name}</h2>
-                </div>
-                <form
-                  action={updateModifierGroup}
-                  className="grid gap-2 sm:grid-cols-[1fr_160px_auto_auto]"
-                >
+              <div className="border-b border-slate-100 p-6">
+                <form action={updateModifierGroup} className="space-y-4">
                   <input type="hidden" name="id" value={selectedGroup.id} />
-                  <input
-                    name="name"
-                    defaultValue={selectedGroup.name}
-                    className="h-10 rounded-lg border border-slate-200 px-3 text-sm outline-none transition-colors focus:border-indigo-400"
-                  />
-                  <select
-                    name="selectionType"
-                    defaultValue={selectedGroup.selectionType}
-                    className="h-10 rounded-lg border border-slate-200 px-3 text-sm outline-none transition-colors focus:border-indigo-400"
-                  >
-                    <option value="single">Один вариант</option>
-                    <option value="multiple">Несколько вариантов</option>
-                  </select>
-                  <label className="flex h-10 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs text-slate-500">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                      <SlidersHorizontal size={18} />
+                    </div>
                     <input
-                      type="checkbox"
-                      name="required"
-                      defaultChecked={selectedGroup.required}
-                      className="accent-indigo-500"
+                      name="name"
+                      defaultValue={selectedGroup.name}
+                      placeholder="Название группы"
+                      className="min-w-0 flex-1 rounded-lg border border-transparent px-2 py-1 text-xl font-semibold text-slate-900 outline-none transition-colors hover:border-slate-200 focus:border-indigo-400"
                     />
-                    обязательно
-                  </label>
-                  <button
-                    type="submit"
-                    className="flex h-10 items-center gap-1.5 rounded-lg bg-indigo-50 px-3 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100"
-                  >
-                    <Save size={14} />
-                    Сохранить
-                  </button>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex rounded-lg border border-slate-200 p-1 text-sm">
+                      <label className="cursor-pointer rounded-md px-3 py-1.5 font-medium text-slate-500 transition-colors has-checked:bg-indigo-500 has-checked:text-white">
+                        <input
+                          type="radio"
+                          name="selectionType"
+                          value="single"
+                          defaultChecked={selectedGroup.selectionType === "single"}
+                          className="sr-only"
+                        />
+                        Один вариант
+                      </label>
+                      <label className="cursor-pointer rounded-md px-3 py-1.5 font-medium text-slate-500 transition-colors has-checked:bg-indigo-500 has-checked:text-white">
+                        <input
+                          type="radio"
+                          name="selectionType"
+                          value="multiple"
+                          defaultChecked={selectedGroup.selectionType === "multiple"}
+                          className="sr-only"
+                        />
+                        Несколько вариантов
+                      </label>
+                    </div>
+
+                    <label className="flex cursor-pointer items-center gap-2.5 text-sm text-slate-600">
+                      <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-slate-200 transition-colors has-checked:bg-indigo-500">
+                        <input
+                          type="checkbox"
+                          name="required"
+                          defaultChecked={selectedGroup.required}
+                          className="peer sr-only"
+                        />
+                        <span className="ml-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5" />
+                      </span>
+                      Обязательный выбор
+                    </label>
+
+                    <button
+                      type="submit"
+                      className="ml-auto flex items-center gap-1.5 rounded-lg bg-indigo-50 px-3.5 py-2 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-100"
+                    >
+                      <Save size={14} />
+                      Сохранить
+                    </button>
+                  </div>
                 </form>
               </div>
 
@@ -126,7 +145,10 @@ export default async function ModifiersPage({ searchParams }: Props) {
                         <form
                           key={opt.id}
                           action={updateModifierOption}
-                          className="grid grid-cols-[1fr_120px_90px_96px] items-center gap-3 px-4 py-2.5"
+                          className={clsx(
+                            "grid grid-cols-[1fr_120px_90px_96px] items-center gap-3 px-4 py-2.5 transition-colors",
+                            opt.isDefault && "bg-indigo-50/40"
+                          )}
                         >
                           <input type="hidden" name="id" value={opt.id} />
                           <input
