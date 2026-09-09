@@ -1,4 +1,4 @@
-# Cafe Print Agent — one-time setup, per till PC.
+﻿# Cafe Print Agent — one-time setup, per till PC.
 #
 # Run this ONCE (double-click install.bat, which calls this with the right
 # execution policy). It:
@@ -135,7 +135,7 @@ try {
 
   Write-Host ''
   Write-Host "Установлено — агент печати запущен и будет стартовать автоматически при каждом входе в Windows." -ForegroundColor Green
-  Write-Host "Проверка: откройте http://127.0.0.1:47990/health в браузере — должно быть { ""ok"": true, ... }." -ForegroundColor Cyan
+  Write-Host "Проверка: откройте http://127.0.0.1:47991/health в браузере — должно быть { ""ok"": true, ... }." -ForegroundColor Cyan
   Write-Host "Настройки (имя принтера и т.д.): $configDest" -ForegroundColor Cyan
   if ($bridgeSource) {
     Write-Host "Мост MAIB скопирован — для терминала MAIB нужен 32-битный Python (py -3-32), см. print-agent/README.md." -ForegroundColor Cyan
