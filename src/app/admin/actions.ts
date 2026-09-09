@@ -58,6 +58,16 @@ export async function createCategory(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function updateCategory(formData: FormData) {
+  const id = Number(formData.get("id"));
+  const name = String(formData.get("name") || "").trim();
+  if (!id || !name) return;
+  await db.update(categories).set({ name, slug: slugify(name) }).where(eq(categories.id, id));
+  revalidatePath("/admin/categories");
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+}
+
 export async function deleteCategory(formData: FormData) {
   const id = Number(formData.get("id"));
   if (!id) return;

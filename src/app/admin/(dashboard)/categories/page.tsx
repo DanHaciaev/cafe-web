@@ -1,6 +1,6 @@
-import { LayoutGrid, Plus, Trash2 } from "lucide-react";
+import { LayoutGrid, Plus, Trash2, Save } from "lucide-react";
 import { getActiveProducts, getCategories } from "@/db/queries";
-import { createCategory, deleteCategory } from "@/app/admin/actions";
+import { createCategory, updateCategory, deleteCategory } from "@/app/admin/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -17,30 +17,41 @@ export default async function CategoriesPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {categoriesList.map((cat) => (
-          <div
+          <form
             key={cat.id}
-            className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+            action={updateCategory}
+            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
           >
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                <LayoutGrid size={18} />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-slate-800">{cat.name}</p>
-                <p className="text-xs text-slate-400">{countByCategory(cat.id)} товаров</p>
-              </div>
+            <input type="hidden" name="id" value={cat.id} />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+              <LayoutGrid size={18} />
             </div>
-            <form action={deleteCategory}>
-              <input type="hidden" name="id" value={cat.id} />
-              <button
-                type="submit"
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500"
-                aria-label="Удалить"
-              >
-                <Trash2 size={16} />
-              </button>
-            </form>
-          </div>
+            <div className="min-w-0 flex-1">
+              <input
+                name="name"
+                defaultValue={cat.name}
+                className="w-full rounded-md border border-transparent px-1 py-0.5 text-sm font-semibold text-slate-800 outline-none transition-colors hover:border-slate-200 focus:border-indigo-400"
+              />
+              <p className="px-1 text-xs text-slate-400">{countByCategory(cat.id)} товаров</p>
+            </div>
+            <button
+              type="submit"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-300 hover:bg-indigo-50 hover:text-indigo-500"
+              aria-label="Сохранить"
+              title="Сохранить"
+            >
+              <Save size={16} />
+            </button>
+            <button
+              type="submit"
+              formAction={deleteCategory}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500"
+              aria-label="Удалить"
+              title="Удалить"
+            >
+              <Trash2 size={16} />
+            </button>
+          </form>
         ))}
         {categoriesList.length === 0 && (
           <p className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-400 sm:col-span-2 lg:col-span-3">

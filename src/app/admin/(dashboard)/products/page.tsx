@@ -1,9 +1,10 @@
 import Link from "next/link";
 import clsx from "clsx";
-import { Coffee, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { getActiveProducts, getCategories } from "@/db/queries";
 import { createProduct, deleteProduct } from "@/app/admin/actions";
 import { formatPrice } from "@/lib/format";
+import ProductThumb from "@/components/admin/ProductThumb";
 
 export const dynamic = "force-dynamic";
 
@@ -77,8 +78,8 @@ export default async function ProductsPage({ searchParams }: Props) {
                     className="absolute inset-0"
                     aria-label={p.name}
                   />
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
-                    <Coffee size={18} />
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-slate-400">
+                    <ProductThumb imageUrl={p.imageUrl} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-800">{p.name}</p>

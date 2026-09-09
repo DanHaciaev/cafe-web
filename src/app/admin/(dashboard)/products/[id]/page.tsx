@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, SlidersHorizontal, Salad } from "lucide-react";
+import { ArrowLeft, Info, SlidersHorizontal, Salad } from "lucide-react";
 import {
   getActiveProducts,
   getAllIngredients,
@@ -50,57 +50,65 @@ export default async function ProductEditPage({ params }: { params: Promise<{ id
         <h1 className="mt-2 text-2xl font-semibold text-slate-900">{product.name}</h1>
       </div>
 
-      <form
-        action={updateProduct}
-        className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:grid-cols-2"
-      >
-        <input type="hidden" name="id" value={product.id} />
-        <ProductImageField defaultValue={product.imageUrl} />
-        <label className="flex flex-col gap-1 text-sm text-slate-600">
-          Название
-          <input
-            name="name"
-            defaultValue={product.name}
-            required
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm text-slate-600">
-          Категория
-          <select
-            name="categoryId"
-            defaultValue={product.categoryId}
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <Info size={18} className="text-indigo-500" />
+          <h2 className="text-sm font-semibold text-slate-900">Основная информация</h2>
+        </div>
+        <form action={updateProduct} className="grid gap-4 sm:grid-cols-2">
+          <input type="hidden" name="id" value={product.id} />
+          <ProductImageField defaultValue={product.imageUrl} />
+          <label className="flex flex-col gap-1 text-sm text-slate-600">
+            Название
+            <input
+              name="name"
+              defaultValue={product.name}
+              required
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-indigo-400"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm text-slate-600">
+            Категория
+            <select
+              name="categoryId"
+              defaultValue={product.categoryId}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-indigo-400"
+            >
+              {categoriesList.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1 text-sm text-slate-600">
+            Цена
+            <input
+              name="basePrice"
+              type="number"
+              step="0.1"
+              min="0"
+              defaultValue={product.basePrice}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-indigo-400"
+            />
+          </label>
+          <label className="flex h-10.5 items-center gap-2 self-end rounded-lg border border-slate-200 px-3 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              name="isActive"
+              defaultChecked={product.isActive}
+              className="h-4 w-4 accent-indigo-500"
+            />
+            Активен в меню
+          </label>
+          <button
+            type="submit"
+            className="rounded-lg bg-indigo-500 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-400 sm:col-span-2"
           >
-            {categoriesList.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-sm text-slate-600">
-          Цена
-          <input
-            name="basePrice"
-            type="number"
-            step="0.1"
-            min="0"
-            defaultValue={product.basePrice}
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
-          />
-        </label>
-        <label className="flex items-center gap-2 self-end text-sm text-slate-600">
-          <input type="checkbox" name="isActive" defaultChecked={product.isActive} />
-          Активен в меню
-        </label>
-        <button
-          type="submit"
-          className="sm:col-span-2 rounded-lg bg-indigo-500 py-2.5 text-sm font-semibold text-white hover:bg-indigo-400"
-        >
-          Сохранить
-        </button>
-      </form>
+            Сохранить
+          </button>
+        </form>
+      </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
