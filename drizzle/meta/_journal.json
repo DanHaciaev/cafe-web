@@ -29,6 +29,13 @@
       "when": 1788938513197,
       "tag": "0003_gorgeous_warhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788940208466,
+      "tag": "0004_simple_wallow",
+      "breakpoints": true
     }
   ]
 }

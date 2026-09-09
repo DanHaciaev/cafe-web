@@ -12,8 +12,10 @@ import {
   productModifierGroups,
   modifierGroups,
   modifierOptions,
+  locations,
 } from "@/db/schema";
 import { checkPassword, setAdminPassword } from "@/lib/adminAuth";
+import { setLocationPin } from "@/lib/locationAuth";
 
 // --- Admin password -------------------------------------------------------
 
@@ -272,4 +274,38 @@ export async function setProductIngredient(formData: FormData) {
   }
   revalidatePath(`/admin/products/${productId}`);
   revalidatePath("/");
+}
+
+// --- Locations -------------------------------------------------------
+
+export async function createLocation(formData: FormData) {
+  const name = String(formData.get("name") || "").trim();
+  const pin = String(formData.get("pin") || "").trim();
+  if (!name || pin.length < 4) return;
+  const [location] = await db.insert(locations).values({ name }).returning();
+  await setLocationPin(location.id, pin);
+  revalidatePath("/admin/locations");
+}
+
+export async function updateLocationName(formData: FormData) {
+  const id = Number(formData.get("id"));
+  const name = String(formData.get("name") || "").trim();
+  if (!id || !name) return;
+  await db.update(locations).set({ name }).where(eq(locations.id, id));
+  revalidatePath("/admin/locations");
+}
+
+export async function changeLocationPin(formData: FormData) {
+  const id = Number(formData.get("id"));
+  const pin = String(formData.get("pin") || "").trim();
+  if (!id || pin.length < 4) return;
+  await setLocationPin(id, pin);
+  revalidatePath("/admin/locations");
+}
+
+export async function deleteLocation(formData: FormData) {
+  const id = Number(formData.get("id"));
+  if (!id) return;
+  await db.delete(locations).where(eq(locations.id, id));
+  revalidatePath("/admin/locations");
 }

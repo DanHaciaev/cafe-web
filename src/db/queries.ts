@@ -1,5 +1,6 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, gte, sql } from "drizzle-orm";
 import { db } from "./client";
+import { parseSqliteUtcDate } from "@/lib/date";
 import {
   categories,
   products,
@@ -12,10 +13,20 @@ import {
   orderItems,
   orderItemModifiers,
   orderItemIngredients,
+  locations,
 } from "./schema";
 
 export async function getCategories() {
   return db.select().from(categories).orderBy(categories.sortOrder);
+}
+
+export async function getLocations() {
+  return db.select().from(locations).orderBy(locations.name);
+}
+
+export async function getLocation(id: number) {
+  const [location] = await db.select().from(locations).where(eq(locations.id, id));
+  return location ?? null;
 }
 
 export async function getActiveProducts() {
@@ -201,6 +212,196 @@ export async function getTodayStats() {
     .from(orders)
     .where(sql`date(${orders.createdAt}) = date('now')`);
   return row ?? { count: 0, total: 0 };
+}
+
+const CHISINAU_TZ = "Europe/Chisinau";
+
+// Formats a real Date as its Chisinau calendar date, "YYYY-MM-DD" — used both
+// for grouping (daily revenue) and as a lexicographically-comparable range key.
+function chisinauDateKey(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: CHISINAU_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+// Chisinau local hour (0-23) for peak-hours bucketing.
+function chisinauHour(date: Date): number {
+  const hour = new Intl.DateTimeFormat("en-US", {
+    timeZone: CHISINAU_TZ,
+    hour: "numeric",
+    hour12: false,
+  }).format(date);
+  return Number(hour) % 24;
+}
+
+export type AnalyticsRange = "today" | "7d" | "30d" | "month";
+
+// Calendar-date arithmetic done on a "fake UTC" Date (Y/M/D from the
+// Chisinau wall clock, wrapped in Date.UTC) so day subtraction doesn't need
+// to know the real UTC offset or DST rules — only string comparison of the
+// resulting keys against chisinauDateKey() output matters.
+function rangeToKeys(range: AnalyticsRange): { fromKey: string; toKey: string; daySpan: number } {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: CHISINAU_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const map = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+  const y = Number(map.year);
+  const m = Number(map.month);
+  const d = Number(map.day);
+  const todayUtc = Date.UTC(y, m - 1, d);
+  const toKey = new Date(todayUtc).toISOString().slice(0, 10);
+
+  if (range === "today") return { fromKey: toKey, toKey, daySpan: 1 };
+  if (range === "7d") {
+    const fromKey = new Date(todayUtc - 6 * 86400000).toISOString().slice(0, 10);
+    return { fromKey, toKey, daySpan: 7 };
+  }
+  if (range === "30d") {
+    const fromKey = new Date(todayUtc - 29 * 86400000).toISOString().slice(0, 10);
+    return { fromKey, toKey, daySpan: 30 };
+  }
+  // month-to-date
+  const fromKey = new Date(Date.UTC(y, m - 1, 1)).toISOString().slice(0, 10);
+  return { fromKey, toKey, daySpan: d };
+}
+
+export type AnalyticsData = {
+  fromKey: string;
+  toKey: string;
+  totalRevenue: number;
+  orderCount: number;
+  avgCheck: number;
+  cashRevenue: number;
+  cardRevenue: number;
+  dailyRevenue: { date: string; revenue: number }[];
+  hourlyRevenue: { hour: number; revenue: number; count: number }[];
+  topProducts: { name: string; quantity: number; revenue: number }[];
+  locationBreakdown: { locationId: number | null; name: string; revenue: number; orderCount: number }[];
+};
+
+export async function getAnalytics(range: AnalyticsRange, locationId?: number): Promise<AnalyticsData> {
+  const { fromKey, toKey, daySpan } = rangeToKeys(range);
+
+  // Generous UTC lower bound for the SQL fetch — exact filtering to the
+  // Chisinau calendar range happens below with chisinauDateKey(), since
+  // SQLite has no timezone-aware date functions here.
+  const sqlLowerBound = new Date(Date.now() - (daySpan + 2) * 86400000)
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ");
+
+  const orderRows = await db
+    .select({
+      id: orders.id,
+      total: orders.total,
+      paymentMethod: orders.paymentMethod,
+      createdAt: orders.createdAt,
+      locationId: orders.locationId,
+    })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.status, "paid"),
+        gte(orders.createdAt, sqlLowerBound),
+        locationId ? eq(orders.locationId, locationId) : undefined
+      )
+    );
+
+  const inRange = orderRows.filter((o) => {
+    const key = chisinauDateKey(parseSqliteUtcDate(o.createdAt));
+    return key >= fromKey && key <= toKey;
+  });
+
+  let totalRevenue = 0;
+  let cashRevenue = 0;
+  let cardRevenue = 0;
+  const dailyMap = new Map<string, number>();
+  const hourlyMap = new Map<number, { revenue: number; count: number }>();
+  const locationMap = new Map<number | null, { revenue: number; orderCount: number }>();
+
+  for (const order of inRange) {
+    totalRevenue += order.total;
+    if (order.paymentMethod === "card") cardRevenue += order.total;
+    else cashRevenue += order.total;
+
+    const date = parseSqliteUtcDate(order.createdAt);
+    const dayKey = chisinauDateKey(date);
+    dailyMap.set(dayKey, (dailyMap.get(dayKey) ?? 0) + order.total);
+
+    const hour = chisinauHour(date);
+    const hourEntry = hourlyMap.get(hour) ?? { revenue: 0, count: 0 };
+    hourEntry.revenue += order.total;
+    hourEntry.count += 1;
+    hourlyMap.set(hour, hourEntry);
+
+    const locEntry = locationMap.get(order.locationId) ?? { revenue: 0, orderCount: 0 };
+    locEntry.revenue += order.total;
+    locEntry.orderCount += 1;
+    locationMap.set(order.locationId, locEntry);
+  }
+
+  const dailyRevenue: { date: string; revenue: number }[] = [];
+  for (let i = 0; i < daySpan; i++) {
+    const key = new Date(new Date(fromKey + "T00:00:00Z").getTime() + i * 86400000)
+      .toISOString()
+      .slice(0, 10);
+    if (key > toKey) break;
+    dailyRevenue.push({ date: key, revenue: dailyMap.get(key) ?? 0 });
+  }
+
+  const hourlyRevenue = Array.from({ length: 24 }, (_, hour) => ({
+    hour,
+    revenue: hourlyMap.get(hour)?.revenue ?? 0,
+    count: hourlyMap.get(hour)?.count ?? 0,
+  }));
+
+  const orderIds = inRange.map((o) => o.id);
+  let topProducts: { name: string; quantity: number; revenue: number }[] = [];
+  if (orderIds.length > 0) {
+    const rows = await db
+      .select({
+        name: orderItems.name,
+        quantity: sql<number>`sum(${orderItems.quantity})`,
+        revenue: sql<number>`sum(${orderItems.unitPrice} * ${orderItems.quantity})`,
+      })
+      .from(orderItems)
+      .where(sql`${orderItems.orderId} in (${sql.join(orderIds, sql`, `)})`)
+      .groupBy(orderItems.name)
+      .orderBy(sql`sum(${orderItems.unitPrice} * ${orderItems.quantity}) desc`)
+      .limit(10);
+    topProducts = rows;
+  }
+
+  const allLocations = await getLocations();
+  const locationNames = new Map(allLocations.map((l) => [l.id, l.name]));
+  const locationBreakdown = Array.from(locationMap.entries())
+    .map(([locId, entry]) => ({
+      locationId: locId,
+      name: locId === null ? "Без точки" : (locationNames.get(locId) ?? `Точка #${locId}`),
+      revenue: entry.revenue,
+      orderCount: entry.orderCount,
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+
+  return {
+    fromKey,
+    toKey,
+    totalRevenue,
+    orderCount: inRange.length,
+    avgCheck: inRange.length > 0 ? totalRevenue / inRange.length : 0,
+    cashRevenue,
+    cardRevenue,
+    dailyRevenue,
+    hourlyRevenue,
+    topProducts,
+    locationBreakdown,
+  };
 }
 
 export async function getDashboardCounts() {

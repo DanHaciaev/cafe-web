@@ -17,9 +17,10 @@ type Props = {
   categories: Category[];
   products: Product[];
   productDetails: Record<number, ProductDetail>;
+  activeLocation: { id: number; name: string } | null;
 };
 
-export default function PosApp({ categories, products, productDetails }: Props) {
+export default function PosApp({ categories, products, productDetails, activeLocation }: Props) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "all">("all");
   const [search, setSearch] = useState("");
@@ -167,6 +168,7 @@ export default function PosApp({ categories, products, productDetails }: Props) 
           items: cart,
           paymentMethod: payment.paymentMethod,
           cardTransactionId: payment.cardTransactionId,
+          locationId: activeLocation?.id,
         }),
       });
       if (!res.ok) throw new Error("Failed to create order");
@@ -207,7 +209,7 @@ export default function PosApp({ categories, products, productDetails }: Props) 
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: cart, hold: true }),
+        body: JSON.stringify({ items: cart, hold: true, locationId: activeLocation?.id }),
       });
       if (!res.ok) throw new Error("Failed to hold order");
       const order = await res.json();
@@ -283,6 +285,7 @@ export default function PosApp({ categories, products, productDetails }: Props) 
         onSelect={setSelectedCategoryId}
         collapsed={sidebarCollapsed}
         onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
+        activeLocation={activeLocation}
       />
       <div className="relative flex flex-1 flex-col overflow-hidden">
         <TopBar

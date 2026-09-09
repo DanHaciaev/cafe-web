@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import {
   LayoutDashboard,
+  BarChart3,
   Coffee,
   SlidersHorizontal,
   LayoutGrid,
   Salad,
+  MapPin,
   CreditCard,
   Settings,
   LogOut,
@@ -18,10 +20,12 @@ import { logout } from "@/app/admin/login/actions";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Дашборд", icon: LayoutDashboard, exact: true },
+  { href: "/admin/analytics", label: "Аналитика", icon: BarChart3 },
   { href: "/admin/products", label: "Товары", icon: Coffee },
   { href: "/admin/modifiers", label: "Модификаторы", icon: SlidersHorizontal },
   { href: "/admin/categories", label: "Категории", icon: LayoutGrid },
   { href: "/admin/ingredients", label: "Ингредиенты", icon: Salad },
+  { href: "/admin/locations", label: "Точки", icon: MapPin },
   { href: "/admin/terminal", label: "Терминал", icon: CreditCard },
   { href: "/admin/settings", label: "Настройки", icon: Settings },
 ];

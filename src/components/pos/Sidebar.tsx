@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, MapPin } from "lucide-react";
 import clsx from "clsx";
 import type { Category } from "@/lib/types";
+import { switchLocation } from "@/app/select-location/actions";
 
 type Props = {
   categories: Category[];
@@ -11,6 +12,7 @@ type Props = {
   onSelect: (id: number | "all") => void;
   collapsed: boolean;
   onToggleCollapsed: () => void;
+  activeLocation: { id: number; name: string } | null;
 };
 
 function CategoryThumb({ imageUrl, fallback }: { imageUrl: string | null; fallback: string }) {
@@ -35,6 +37,7 @@ export default function Sidebar({
   onSelect,
   collapsed,
   onToggleCollapsed,
+  activeLocation,
 }: Props) {
   return (
     <aside
@@ -111,6 +114,31 @@ export default function Sidebar({
             </button>
           ))}
         </nav>
+      )}
+
+      {activeLocation && (
+        <div className={clsx("border-t border-white/10 p-3", collapsed && "flex justify-center")}>
+          <form action={switchLocation}>
+            <button
+              type="submit"
+              title={`Точка: ${activeLocation.name}. Сменить точку`}
+              className={clsx(
+                "flex items-center gap-2.5 rounded-lg text-indigo-100 transition-colors hover:bg-white/10",
+                collapsed ? "h-11 w-11 justify-center" : "w-full px-3 py-2.5"
+              )}
+            >
+              <MapPin size={18} className="shrink-0" />
+              {!collapsed && (
+                <span className="flex flex-col items-start overflow-hidden text-left">
+                  <span className="w-full truncate text-sm font-semibold text-white">
+                    {activeLocation.name}
+                  </span>
+                  <span className="text-xs text-indigo-300">Сменить точку</span>
+                </span>
+              )}
+            </button>
+          </form>
+        </div>
       )}
     </aside>
   );

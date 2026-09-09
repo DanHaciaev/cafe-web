@@ -95,9 +95,22 @@ export const productIngredients = sqliteTable("product_ingredients", {
   removable: integer("removable", { mode: "boolean" }).notNull().default(true),
 });
 
+// A physical till/branch ("точка"). Optional feature: if the admin never
+// creates one, the cassa skips location login entirely and orders are
+// created with locationId = null, same as before this table existed.
+export const locations = sqliteTable("locations", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  pinHash: text("pin_hash"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
 export const orders = sqliteTable("orders", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   number: integer("number").notNull(),
+  locationId: integer("location_id").references(() => locations.id, { onDelete: "set null" }),
   status: text("status", { enum: ["open", "paid", "cancelled"] })
     .notNull()
     .default("open"),
