@@ -124,46 +124,46 @@ export default function PaymentModal({ total, items, terminals, onCancel, onConf
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-80 shrink-0 overflow-y-auto border-r border-slate-100 bg-slate-50/60 p-6">
-          <p className="mb-4 text-sm font-semibold text-slate-700">Заказ</p>
-          <div className="space-y-4">
+        <div className="w-md shrink-0 overflow-y-auto border-r border-slate-100 bg-slate-50/60 p-8">
+          <p className="mb-6 text-lg font-semibold text-slate-700">Заказ</p>
+          <div className="space-y-5">
             {items.map((item) => (
               <div key={item.id}>
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-sm font-medium text-slate-700">
+                  <span className="text-lg font-medium text-slate-700">
                     {item.quantity} × {item.name}
                   </span>
-                  <span className="shrink-0 text-sm font-semibold text-slate-900">
+                  <span className="shrink-0 text-lg font-semibold text-slate-900">
                     {formatPrice(item.totalPrice)}
                   </span>
                 </div>
                 {item.detail?.map((d, i) => (
-                  <p key={i} className="pl-3 text-xs text-slate-400">
+                  <p key={i} className="pl-3 text-sm text-slate-400">
                     {d}
                   </p>
                 ))}
               </div>
             ))}
           </div>
-          <div className="mt-6 flex items-center justify-between border-t border-slate-200 pt-4">
-            <span className="text-base font-semibold text-slate-900">Итого</span>
-            <span className="text-2xl font-bold text-slate-900">{formatPrice(dueAmount)}</span>
+          <div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-5">
+            <span className="text-xl font-semibold text-slate-900">Итого</span>
+            <span className="text-3xl font-bold text-slate-900">{formatPrice(dueAmount)}</span>
           </div>
         </div>
 
         <div className="flex flex-1 items-center justify-center overflow-y-auto p-8">
           {view === "select" && (
-            <div className="grid w-full max-w-lg grid-cols-2 gap-5">
+            <div className="grid w-full max-w-3xl grid-cols-2 gap-8">
               <button
                 type="button"
                 onClick={() => {
                   setCashInput("");
                   setView("cash");
                 }}
-                className="flex flex-col items-center gap-3 rounded-3xl border-2 border-slate-200 py-10 transition-all hover:border-emerald-300 hover:bg-emerald-50/40 active:scale-[0.98]"
+                className="flex flex-col items-center gap-5 rounded-3xl border-2 border-slate-200 py-20 transition-all hover:border-emerald-300 hover:bg-emerald-50/40 active:scale-[0.98]"
               >
-                <Banknote className="text-emerald-600" size={40} />
-                <span className="text-lg font-semibold text-slate-800">Наличные</span>
+                <Banknote className="text-emerald-600" size={72} />
+                <span className="text-2xl font-semibold text-slate-800">Наличные</span>
               </button>
               <button
                 type="button"
@@ -171,60 +171,60 @@ export default function PaymentModal({ total, items, terminals, onCancel, onConf
                   setCardError(null);
                   setView("card");
                 }}
-                className="flex flex-col items-center gap-3 rounded-3xl border-2 border-slate-200 py-10 transition-all hover:border-indigo-300 hover:bg-indigo-50/40 active:scale-[0.98]"
+                className="flex flex-col items-center gap-5 rounded-3xl border-2 border-slate-200 py-20 transition-all hover:border-indigo-300 hover:bg-indigo-50/40 active:scale-[0.98]"
               >
-                <CreditCard className="text-indigo-600" size={40} />
-                <span className="text-lg font-semibold text-slate-800">Карта</span>
+                <CreditCard className="text-indigo-600" size={72} />
+                <span className="text-2xl font-semibold text-slate-800">Карта</span>
               </button>
             </div>
           )}
 
           {view === "cash" && (
-            <div className="grid w-full max-w-3xl grid-cols-[auto_1fr] gap-10">
-              <div className="flex flex-col gap-2">
-                <div className="grid grid-cols-3 gap-2">
+            <div className="grid w-full max-w-6xl grid-cols-[auto_1fr] gap-16">
+              <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   {KEYS.map((key) => (
                     <button
                       key={key}
                       type="button"
                       onClick={() => pressKey(key)}
-                      className="flex h-16 w-16 items-center justify-center rounded-xl border border-slate-200 text-xl font-semibold text-slate-700 transition-colors hover:bg-slate-50 active:scale-95"
+                      className="flex h-24 w-24 items-center justify-center rounded-2xl border border-slate-200 text-3xl font-semibold text-slate-700 transition-colors hover:bg-slate-50 active:scale-95"
                     >
-                      {key === "⌫" ? <Delete size={20} /> : key}
+                      {key === "⌫" ? <Delete size={28} /> : key}
                     </button>
                   ))}
                 </div>
                 <button
                   type="button"
                   onClick={() => setCashInput("")}
-                  className="mt-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-500 transition-colors hover:bg-slate-50"
+                  className="mt-1 rounded-2xl border border-slate-200 py-4 text-base font-semibold text-slate-500 transition-colors hover:bg-slate-50"
                 >
                   Очистить
                 </button>
               </div>
 
-              <div className="flex flex-col gap-4">
-                <div className="flex items-baseline justify-between rounded-2xl bg-slate-50 px-5 py-4">
-                  <span className="text-sm font-medium text-slate-500">К оплате</span>
-                  <span className="text-2xl font-bold text-slate-900">{formatPrice(dueAmount)}</span>
+              <div className="flex w-full max-w-xl flex-col gap-5">
+                <div className="flex items-baseline justify-between rounded-2xl bg-slate-50 px-7 py-6">
+                  <span className="text-lg font-medium text-slate-500">К оплате</span>
+                  <span className="text-4xl font-bold text-slate-900">{formatPrice(dueAmount)}</span>
                 </div>
 
-                <div className="flex items-baseline justify-between rounded-2xl border-2 border-emerald-200 bg-emerald-50 px-5 py-4">
-                  <span className="text-sm font-semibold text-emerald-700">Получено</span>
-                  <span className="text-3xl font-bold text-emerald-800">
-                    {cashInput || "0"} <span className="text-base">MDL</span>
+                <div className="flex items-baseline justify-between rounded-2xl border-2 border-emerald-200 bg-emerald-50 px-7 py-6">
+                  <span className="text-lg font-semibold text-emerald-700">Получено</span>
+                  <span className="text-5xl font-bold text-emerald-800">
+                    {cashInput || "0"} <span className="text-xl">MDL</span>
                   </span>
                 </div>
 
                 <div
                   className={clsx(
-                    "flex items-baseline justify-between rounded-2xl border-2 px-5 py-4",
+                    "flex items-baseline justify-between rounded-2xl border-2 px-7 py-6",
                     insufficient ? "border-red-200 bg-red-50" : "border-indigo-200 bg-indigo-50"
                   )}
                 >
                   <span
                     className={clsx(
-                      "text-sm font-semibold",
+                      "text-lg font-semibold",
                       insufficient ? "text-red-700" : "text-indigo-700"
                     )}
                   >
@@ -232,7 +232,7 @@ export default function PaymentModal({ total, items, terminals, onCancel, onConf
                   </span>
                   <span
                     className={clsx(
-                      "text-3xl font-bold",
+                      "text-5xl font-bold",
                       insufficient ? "text-red-700" : "text-indigo-700"
                     )}
                   >
@@ -240,11 +240,11 @@ export default function PaymentModal({ total, items, terminals, onCancel, onConf
                   </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-3">
                   <button
                     type="button"
                     onClick={() => setCashInput(String(dueAmount))}
-                    className="rounded-xl border-2 border-indigo-200 bg-indigo-50 py-3 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
+                    className="rounded-2xl border-2 border-indigo-200 bg-indigo-50 py-6 text-lg font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
                   >
                     Без сдачи
                   </button>
@@ -253,7 +253,7 @@ export default function PaymentModal({ total, items, terminals, onCancel, onConf
                       key={amount}
                       type="button"
                       onClick={() => setCashInput(String(amount))}
-                      className="rounded-xl border border-slate-200 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+                      className="rounded-2xl border border-slate-200 py-6 text-lg font-semibold text-slate-600 transition-colors hover:bg-slate-50"
                     >
                       {amount}
                     </button>
@@ -265,7 +265,7 @@ export default function PaymentModal({ total, items, terminals, onCancel, onConf
                   disabled={cashInput === "" || insufficient}
                   onClick={() => onConfirm({ paymentMethod: "cash" })}
                   className={clsx(
-                    "mt-2 rounded-2xl py-4 text-base font-semibold text-white transition-all active:scale-[0.99]",
+                    "mt-2 rounded-2xl py-6 text-xl font-semibold text-white transition-all active:scale-[0.99]",
                     cashInput === "" || insufficient
                       ? "cursor-not-allowed bg-slate-300"
                       : "bg-emerald-500 shadow-sm shadow-emerald-200 hover:bg-emerald-400"
@@ -278,20 +278,20 @@ export default function PaymentModal({ total, items, terminals, onCancel, onConf
           )}
 
           {view === "card" && (
-            <div className="w-full max-w-sm space-y-3 text-center">
+            <div className="w-full max-w-lg space-y-4 text-center">
               {cardError && (
-                <p className="rounded-lg bg-red-50 p-2 text-center text-sm text-red-600">{cardError}</p>
+                <p className="rounded-xl bg-red-50 p-4 text-center text-base text-red-600">{cardError}</p>
               )}
 
               {terminals.length === 0 && (
                 <>
-                  <p className="mb-2 text-sm text-slate-500">
+                  <p className="mb-2 text-lg text-slate-500">
                     Банковский терминал не подключён — оплата картой будет зафиксирована вручную.
                   </p>
                   <button
                     type="button"
                     onClick={() => onConfirm({ paymentMethod: "card" })}
-                    className="w-full rounded-2xl bg-indigo-500 py-4 text-base font-semibold text-white shadow-sm shadow-indigo-200 transition-colors hover:bg-indigo-400 active:scale-[0.99]"
+                    className="w-full rounded-2xl bg-indigo-500 py-6 text-xl font-semibold text-white shadow-sm shadow-indigo-200 transition-colors hover:bg-indigo-400 active:scale-[0.99]"
                   >
                     Подтвердить оплату картой
                   </button>
@@ -305,14 +305,14 @@ export default function PaymentModal({ total, items, terminals, onCancel, onConf
                   onClick={() => payByCard(t)}
                   disabled={!!chargingTerminalId}
                   className={clsx(
-                    "flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition-all active:scale-[0.99] disabled:opacity-50",
+                    "flex w-full items-center gap-4 rounded-2xl border p-6 text-left transition-all active:scale-[0.99] disabled:opacity-50",
                     chargingTerminalId === t.id
                       ? "border-indigo-400 bg-indigo-50/40"
                       : "border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40"
                   )}
                 >
-                  <CreditCard className="text-indigo-600" size={22} />
-                  <span className="text-sm font-medium text-slate-800">
+                  <CreditCard className="text-indigo-600" size={32} />
+                  <span className="text-lg font-medium text-slate-800">
                     {chargingTerminalId === t.id ? "Ожидание оплаты на терминале..." : t.label || t.driver}
                   </span>
                 </button>
