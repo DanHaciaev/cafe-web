@@ -27,7 +27,7 @@ export default async function KitchenReceiptPage({ params, searchParams }: Props
   const createdAt = parseSqliteUtcDate(order.createdAt);
 
   return (
-    <div className="mx-auto w-[72mm] bg-white p-3 font-mono text-black print:w-full">
+    <div id="receipt" className="mx-auto w-[72mm] bg-white p-3 font-mono text-black print:w-full">
       {auto === "1" && <AutoPrint />}
       <div className="text-center">
         <p className="text-lg font-bold">ЧЕК НА КУХНЮ</p>

@@ -61,20 +61,23 @@ $pd = New-Object System.Drawing.Printing.PrintDocument
 $pd.PrinterSettings.PrinterName = '${escapedPrinter}'
 $ratio = $img.Height / $img.Width
 $heightUnits = [Math]::Max(100, [int](${paperWidthUnits} * $ratio))
-# The driver's predefined "roll" paper size reports a huge default height for
-# continuous feed — printing at that height feeds far past the receipt image,
-# and the undrawn trailing area comes back solid black on this printer's
-# driver instead of white. An exact custom size (image height, not the
-# roll's nominal max) makes the page end exactly where the content ends.
-try {
-  $customSize = New-Object System.Drawing.Printing.PaperSize('CafeReceipt', ${paperWidthUnits}, $heightUnits)
-  $pd.DefaultPageSettings.PaperSize = $customSize
-} catch {
-  $sizes = $pd.PrinterSettings.PaperSizes
+# This driver only understands its own pre-registered forms (72mm x 297/420/
+# 3276mm, etc) — it ignores an arbitrary custom PaperSize.Height and silently
+# falls back to whichever form is currently selected. Picking the *largest*
+# matching form (the old behavior) meant every short ticket fed the full
+# 3276mm roll length, and the undrawn trailing area printed solid black
+# instead of white. Pick the smallest registered form that still fits the
+# content instead.
+$sizes = $pd.PrinterSettings.PaperSizes
+$roll = $sizes | Where-Object { $_.Width -eq ${paperWidthUnits} -and $_.Height -ge $heightUnits } |
+  Sort-Object Height | Select-Object -First 1
+if (-not $roll) {
+  # Content taller than any registered form (a very long ticket) — fall back
+  # to the largest one available rather than clipping the receipt.
   $roll = $sizes | Where-Object { $_.Width -eq ${paperWidthUnits} } | Sort-Object Height -Descending | Select-Object -First 1
-  if (-not $roll) { $roll = $sizes | Sort-Object Height -Descending | Select-Object -First 1 }
-  if ($roll) { $pd.DefaultPageSettings.PaperSize = $roll }
 }
+if (-not $roll) { $roll = $sizes | Sort-Object Height -Descending | Select-Object -First 1 }
+if ($roll) { $pd.DefaultPageSettings.PaperSize = $roll }
 $pd.DefaultPageSettings.Margins = New-Object System.Drawing.Printing.Margins(0,0,0,0)
 $captured = $img
 $pd.add_PrintPage({
@@ -106,10 +109,25 @@ async function printKitchenTicket(url, cfg) {
   const page = await browser.newPage();
   try {
     await page.emulateMediaType("print");
+    // The site's CSS switches to a dark page background under
+    // prefers-color-scheme: dark, and headless Chrome inherits that from the
+    // host OS theme. A printed receipt must always render light regardless
+    // of what theme the till PC happens to be set to.
+    await page.emulateMediaFeatures([{ name: "prefers-color-scheme", value: "light" }]);
     await page.setViewport({ width: viewportWidth, height: 2000, deviceScaleFactor: 2 });
     await page.goto(url, { waitUntil: "networkidle0", timeout: 30_000 });
 
-    const totalHeight = await page.evaluate(`document.body.scrollHeight`);
+    // Measuring document.body.scrollHeight is wrong here: the shared root
+    // layout puts min-h-full/h-full on <html>/<body> (needed for the POS
+    // screen elsewhere in the app), which stretches <body> to fill whatever
+    // viewport height we just set instead of reporting the ticket's actual
+    // content height. That measurement then feeds the *next* viewport
+    // height too, so it never shrinks back down — the clip ends up ~2000px
+    // tall no matter how short the ticket is, and the extra space beyond
+    // the ticket (the page's own dark-mode background before the fix above)
+    // prints as a large trailing block. Measuring the ticket's own #receipt
+    // element sidesteps the whole issue.
+    const totalHeight = await page.evaluate(`document.getElementById("receipt").scrollHeight`);
     await page.setViewport({ width: viewportWidth, height: totalHeight + 20, deviceScaleFactor: 2 });
 
     const png = await page.screenshot({
