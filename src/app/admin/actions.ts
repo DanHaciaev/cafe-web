@@ -76,6 +76,16 @@ export async function createIngredient(formData: FormData) {
   revalidatePath("/admin/ingredients");
 }
 
+export async function updateIngredient(formData: FormData) {
+  const id = Number(formData.get("id"));
+  const name = String(formData.get("name") || "").trim();
+  const extraPrice = Number(formData.get("extraPrice") || 0);
+  if (!id || !name) return;
+  await db.update(ingredients).set({ name, extraPrice }).where(eq(ingredients.id, id));
+  revalidatePath("/admin/ingredients");
+  revalidatePath("/admin/products");
+}
+
 export async function deleteIngredient(formData: FormData) {
   const id = Number(formData.get("id"));
   if (!id) return;

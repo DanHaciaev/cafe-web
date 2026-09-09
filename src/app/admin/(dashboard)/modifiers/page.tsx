@@ -1,4 +1,5 @@
-import { SlidersHorizontal, Plus, Trash2 } from "lucide-react";
+import { SlidersHorizontal, Plus, Trash2, Star } from "lucide-react";
+import clsx from "clsx";
 import { getAllModifierGroupsWithOptions } from "@/db/queries";
 import {
   createModifierGroup,
@@ -51,38 +52,51 @@ export default async function ModifiersPage() {
               </form>
             </div>
 
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               {group.options.map((opt) => (
-                <form
+                <div
                   key={opt.id}
-                  action={deleteModifierOption}
-                  className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm"
+                  className={clsx(
+                    "flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 text-sm transition-colors",
+                    opt.isDefault ? "border-indigo-100 bg-indigo-50/50" : "border-slate-100 bg-slate-50"
+                  )}
                 >
-                  <input type="hidden" name="id" value={opt.id} />
-                  <span>
-                    {opt.name}
+                  <div className="flex min-w-0 items-center gap-2">
+                    {opt.isDefault && <Star size={13} className="shrink-0 fill-indigo-400 text-indigo-400" />}
+                    <span className="truncate font-medium text-slate-700">{opt.name}</span>
                     {opt.priceDelta > 0 && (
-                      <span className="text-slate-400"> +{formatPrice(opt.priceDelta)}</span>
+                      <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-xs text-slate-500 shadow-sm">
+                        +{formatPrice(opt.priceDelta)}
+                      </span>
                     )}
-                    {opt.isDefault && <span className="ml-2 text-xs text-indigo-500">по умолчанию</span>}
-                  </span>
-                  <button type="submit" className="text-xs text-red-500 hover:text-red-600">
-                    Удалить
-                  </button>
-                </form>
+                  </div>
+                  <form action={deleteModifierOption}>
+                    <input type="hidden" name="id" value={opt.id} />
+                    <button
+                      type="submit"
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500"
+                      aria-label="Удалить вариант"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </form>
+                </div>
               ))}
+              {group.options.length === 0 && (
+                <p className="px-1 text-xs text-slate-400">Вариантов пока нет</p>
+              )}
             </div>
 
             <form
               action={createModifierOption}
-              className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3"
+              className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4"
             >
               <input type="hidden" name="groupId" value={group.id} />
               <input
                 name="name"
                 placeholder="Вариант (например Ванильный сироп)"
                 required
-                className="flex-1 min-w-40 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-indigo-400"
+                className="h-9 flex-1 min-w-40 rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-indigo-400"
               />
               <input
                 name="priceDelta"
@@ -91,16 +105,17 @@ export default async function ModifiersPage() {
                 min="0"
                 defaultValue={0}
                 placeholder="Доплата"
-                className="w-28 rounded-lg border border-slate-200 px-3 py-1.5 text-sm outline-none focus:border-indigo-400"
+                className="h-9 w-24 rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-indigo-400"
               />
-              <label className="flex items-center gap-1 text-xs text-slate-500">
-                <input type="checkbox" name="isDefault" /> по умолчанию
+              <label className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs text-slate-500">
+                <input type="checkbox" name="isDefault" className="accent-indigo-500" /> по умолчанию
               </label>
               <button
                 type="submit"
-                className="rounded-lg bg-indigo-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-indigo-400"
+                className="flex h-9 items-center gap-1 rounded-lg bg-indigo-500 px-3 text-xs font-medium text-white hover:bg-indigo-400"
               >
-                Добавить вариант
+                <Plus size={14} />
+                Добавить
               </button>
             </form>
           </div>
@@ -130,7 +145,7 @@ export default async function ModifiersPage() {
           <option value="multiple">Несколько вариантов</option>
         </select>
         <label className="flex items-center gap-1 text-sm text-slate-500">
-          <input type="checkbox" name="required" /> обязательно
+          <input type="checkbox" name="required" className="accent-indigo-500" /> обязательно
         </label>
         <button
           type="submit"
