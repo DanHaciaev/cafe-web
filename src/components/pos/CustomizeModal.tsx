@@ -105,37 +105,37 @@ export default function CustomizeModal({ product, detail, onCancel, onConfirm }:
   }
 
   return (
-    <div className="animate-overlay-in absolute inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-6 backdrop-blur-[2px]">
-      <div className="animate-modal-in flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-        <div className="flex items-center gap-4 border-b border-slate-100 p-5">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-50 text-indigo-400">
-            {product.imageUrl && !imageFailed ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={product.imageUrl}
-                alt=""
-                className="h-full w-full object-cover"
-                onError={() => setImageFailed(true)}
-              />
-            ) : (
-              <Coffee size={24} />
-            )}
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-slate-900">{product.name}</h3>
-            <p className="text-sm text-slate-400">{formatPrice(product.basePrice)}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-            aria-label="Закрыть"
-          >
-            <X size={20} />
-          </button>
+    <div className="animate-overlay-in absolute inset-0 z-40 flex flex-col bg-white">
+      <div className="flex items-center gap-4 border-b border-slate-100 px-6 py-4 sm:px-10">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-50 text-indigo-400">
+          {product.imageUrl && !imageFailed ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={product.imageUrl}
+              alt=""
+              className="h-full w-full object-cover"
+              onError={() => setImageFailed(true)}
+            />
+          ) : (
+            <Coffee size={24} />
+          )}
         </div>
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-slate-900">{product.name}</h3>
+          <p className="text-sm text-slate-400">{formatPrice(product.basePrice)}</p>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+          aria-label="Закрыть"
+        >
+          <X size={22} />
+        </button>
+      </div>
 
-        <div className="flex-1 space-y-7 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto px-6 py-6 sm:px-10">
+        <div className="mx-auto w-full max-w-3xl space-y-8">
           {detail.modifierGroups.map((group) => (
             <div key={group.id}>
               <p className="mb-3 text-sm font-semibold text-slate-700">
@@ -217,8 +217,10 @@ export default function CustomizeModal({ product, detail, onCancel, onConfirm }:
             />
           </div>
         </div>
+      </div>
 
-        <div className="flex items-center justify-between gap-4 border-t border-slate-100 bg-slate-50/60 p-5">
+      <div className="border-t border-slate-100 bg-slate-50/60 px-6 py-5 sm:px-10">
+        <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <button
               type="button"
