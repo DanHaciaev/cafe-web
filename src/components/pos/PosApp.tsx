@@ -8,10 +8,37 @@ import TopBar from "./TopBar";
 import ProductGrid from "./ProductGrid";
 import TicketPanel from "./TicketPanel";
 import CustomizeModal from "./CustomizeModal";
-import PaymentModal, { type PaymentResult } from "./PaymentModal";
+import PaymentModal, { type PaymentResult, type ReceiptLine } from "./PaymentModal";
 import OpenOrdersModal, { type OpenOrder } from "./OpenOrdersModal";
 import { tryLocalAgentPrint } from "@/lib/print";
 import { PRINT_AGENT_URL } from "@/lib/agentUrl";
+
+function buildReceiptLines<
+  T extends {
+    name: string;
+    unitPrice: number;
+    quantity: number;
+    modifiers: { groupName: string; optionName: string; priceDelta: number }[];
+    ingredientChanges: { ingredientName: string; action: "removed" | "added"; priceDelta: number }[];
+  },
+>(items: T[], idOf: (item: T, index: number) => string | number): ReceiptLine[] {
+  return items.map((item, i) => {
+    const modifiersTotal = item.modifiers.reduce((s, m) => s + m.priceDelta, 0);
+    const ingredientsTotal = item.ingredientChanges.reduce((s, c) => s + c.priceDelta, 0);
+    const unitPrice = item.unitPrice + modifiersTotal + ingredientsTotal;
+    const detail = [
+      ...item.modifiers.map((m) => `${m.groupName}: ${m.optionName}`),
+      ...item.ingredientChanges.map((c) => `${c.action === "removed" ? "Без" : "Добавить"} ${c.ingredientName}`),
+    ];
+    return {
+      id: idOf(item, i),
+      name: item.name,
+      quantity: item.quantity,
+      totalPrice: unitPrice * item.quantity,
+      detail,
+    };
+  });
+}
 
 type Props = {
   categories: Category[];
@@ -116,6 +143,14 @@ export default function PosApp({ categories, products, productDetails, activeLoc
         return sum + (item.unitPrice + modifiersTotal + ingredientsTotal) * item.quantity;
       }, 0),
     [cart]
+  );
+
+  const paymentItems = useMemo(
+    () =>
+      payingOpenOrder
+        ? buildReceiptLines(payingOpenOrder.items, (item) => item.id)
+        : buildReceiptLines(cart, (item) => item.cartId),
+    [cart, payingOpenOrder]
   );
 
   const refreshOpenOrders = useCallback(async () => {
@@ -322,6 +357,7 @@ export default function PosApp({ categories, products, productDetails, activeLoc
       {showPaymentModal && (
         <PaymentModal
           total={payingOpenOrder ? payingOpenOrder.total : total}
+          items={paymentItems}
           terminals={paymentTerminals}
           onCancel={() => {
             setShowPaymentModal(false);
