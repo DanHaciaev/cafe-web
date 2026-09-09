@@ -71,20 +71,20 @@ export default async function ProductsPage({ searchParams }: Props) {
             </div>
             <div className="divide-y divide-slate-100">
               {productsInCategory.map((p) => (
-                <div key={p.id} className="flex items-center gap-4 px-5 py-3">
+                <div key={p.id} className="relative flex items-center gap-4 px-5 py-3 hover:bg-slate-50">
+                  <Link
+                    href={`/admin/products/${p.id}`}
+                    className="absolute inset-0"
+                    aria-label={p.name}
+                  />
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
                     <Coffee size={18} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <Link
-                      href={`/admin/products/${p.id}`}
-                      className="text-sm font-medium text-slate-800 hover:text-indigo-600"
-                    >
-                      {p.name}
-                    </Link>
+                    <p className="text-sm font-medium text-slate-800">{p.name}</p>
                     <p className="text-sm text-slate-400">{formatPrice(p.basePrice)}</p>
                   </div>
-                  <form action={deleteProduct}>
+                  <form action={deleteProduct} className="relative z-10">
                     <input type="hidden" name="id" value={p.id} />
                     <button
                       type="submit"
