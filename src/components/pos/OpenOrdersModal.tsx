@@ -2,6 +2,7 @@
 
 import { ClipboardList, X, Clock, CreditCard } from "lucide-react";
 import { formatPrice } from "@/lib/format";
+import { parseSqliteUtcDate } from "@/lib/date";
 
 type OpenOrderItem = {
   id: number;
@@ -59,7 +60,7 @@ export default function OpenOrdersModal({ orders, loading, onClose, onPay }: Pro
                   <span className="text-sm font-bold text-slate-900">#{order.number}</span>
                   <span className="flex items-center gap-1 text-xs text-slate-400">
                     <Clock size={12} />
-                    {new Date(order.createdAt).toLocaleTimeString()}
+                    {parseSqliteUtcDate(order.createdAt).toLocaleTimeString()}
                   </span>
                 </div>
                 <div className="mb-3 space-y-0.5">

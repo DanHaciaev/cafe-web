@@ -1,6 +1,13 @@
 import { notFound } from "next/navigation";
 import { getOrderForReceipt } from "@/db/queries";
 import AutoPrint from "@/components/print/AutoPrint";
+import { parseSqliteUtcDate } from "@/lib/date";
+
+// This page renders on the server (Vercel, likely running in UTC) but the
+// receipt is for a cafe in Chișinău — hardcode the timezone so the printed
+// time is always local to the cafe regardless of which region the
+// serverless function happens to execute in.
+const RECEIPT_TIME_ZONE = "Europe/Chisinau";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -17,7 +24,7 @@ export default async function KitchenReceiptPage({ params, searchParams }: Props
   if (!data) notFound();
 
   const { order, items } = data;
-  const createdAt = new Date(order.createdAt);
+  const createdAt = parseSqliteUtcDate(order.createdAt);
 
   return (
     <div className="mx-auto w-[72mm] bg-white p-3 font-mono text-black print:w-full">
@@ -26,7 +33,8 @@ export default async function KitchenReceiptPage({ params, searchParams }: Props
         <p className="text-lg font-bold">ЧЕК НА КУХНЮ</p>
         <p className="text-2xl font-extrabold">#{order.number}</p>
         <p className="text-xs">
-          {createdAt.toLocaleDateString()} {createdAt.toLocaleTimeString()}
+          {createdAt.toLocaleDateString("ru-RU", { timeZone: RECEIPT_TIME_ZONE })}{" "}
+          {createdAt.toLocaleTimeString("ru-RU", { timeZone: RECEIPT_TIME_ZONE })}
         </p>
       </div>
       <hr className="my-2 border-dashed border-black" />
