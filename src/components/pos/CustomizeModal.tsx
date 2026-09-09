@@ -127,10 +127,10 @@ export default function CustomizeModal({ product, detail, onCancel, onConfirm }:
         <button
           type="button"
           onClick={onCancel}
-          className="flex h-10 w-10 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
           aria-label="Закрыть"
         >
-          <X size={22} />
+          <X size={20} />
         </button>
       </div>
 
