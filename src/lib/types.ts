@@ -1,6 +1,7 @@
 export type Category = {
   id: number;
   name: string;
+  imageUrl: string | null;
   slug: string;
   sortOrder: number;
 };

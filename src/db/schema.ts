@@ -17,6 +17,7 @@ export const settings = sqliteTable("settings", {
 export const categories = sqliteTable("categories", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
+  imageUrl: text("image_url"),
   slug: text("slug").notNull().unique(),
   sortOrder: integer("sort_order").notNull().default(0),
 });

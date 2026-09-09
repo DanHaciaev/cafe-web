@@ -1,6 +1,7 @@
-import { LayoutGrid, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { getActiveProducts, getCategories } from "@/db/queries";
 import { createCategory, updateCategory, deleteCategory } from "@/app/admin/actions";
+import CategoryImageField from "@/components/admin/CategoryImageField";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +31,7 @@ export default async function CategoriesPage() {
             >
               <input type="hidden" name="id" value={cat.id} />
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
-                  <LayoutGrid size={15} />
-                </div>
+                <CategoryImageField defaultValue={cat.imageUrl} />
                 <input
                   name="name"
                   defaultValue={cat.name}

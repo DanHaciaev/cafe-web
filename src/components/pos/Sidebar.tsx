@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Menu } from "lucide-react";
 import clsx from "clsx";
 import type { Category } from "@/lib/types";
@@ -11,6 +12,22 @@ type Props = {
   collapsed: boolean;
   onToggleCollapsed: () => void;
 };
+
+function CategoryThumb({ imageUrl, fallback }: { imageUrl: string | null; fallback: string }) {
+  const [failed, setFailed] = useState(false);
+  if (imageUrl && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={imageUrl}
+        alt=""
+        className="h-full w-full object-cover"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+  return <>{fallback}</>;
+}
 
 export default function Sidebar({
   categories,
@@ -45,8 +62,8 @@ export default function Sidebar({
             onClick={() => onSelect("all")}
             title="Все"
             className={clsx(
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold transition-colors",
-              selectedCategoryId === "all" ? "bg-white text-[#1e1b4b]" : "text-indigo-100 hover:bg-white/10"
+              "flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-semibold transition-colors",
+              selectedCategoryId === "all" ? "bg-white text-[#1e1b4b]" : "bg-white/10 text-indigo-100 hover:bg-white/20"
             )}
           >
             Все
@@ -58,11 +75,13 @@ export default function Sidebar({
               onClick={() => onSelect(cat.id)}
               title={cat.name}
               className={clsx(
-                "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-semibold uppercase transition-colors",
-                selectedCategoryId === cat.id ? "bg-white text-[#1e1b4b]" : "text-indigo-100 hover:bg-white/10"
+                "flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl text-sm font-semibold uppercase transition-colors",
+                selectedCategoryId === cat.id
+                  ? "bg-white text-[#1e1b4b]"
+                  : "bg-white/10 text-indigo-100 hover:bg-white/20"
               )}
             >
-              {cat.name.slice(0, 2)}
+              <CategoryThumb imageUrl={cat.imageUrl} fallback={cat.name.slice(0, 2)} />
             </button>
           ))}
         </nav>
@@ -84,10 +103,18 @@ export default function Sidebar({
               type="button"
               onClick={() => onSelect(cat.id)}
               className={clsx(
-                "rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors",
+                "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-colors",
                 selectedCategoryId === cat.id ? "bg-white text-[#1e1b4b]" : "text-indigo-100 hover:bg-white/10"
               )}
             >
+              <span
+                className={clsx(
+                  "flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md text-[10px] font-semibold uppercase",
+                  selectedCategoryId === cat.id ? "bg-indigo-50 text-[#1e1b4b]" : "bg-white/10 text-indigo-100"
+                )}
+              >
+                <CategoryThumb imageUrl={cat.imageUrl} fallback={cat.name.slice(0, 2)} />
+              </span>
               {cat.name}
             </button>
           ))}

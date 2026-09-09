@@ -61,8 +61,12 @@ export async function createCategory(formData: FormData) {
 export async function updateCategory(formData: FormData) {
   const id = Number(formData.get("id"));
   const name = String(formData.get("name") || "").trim();
+  const imageUrl = String(formData.get("imageUrl") || "").trim();
   if (!id || !name) return;
-  await db.update(categories).set({ name, slug: slugify(name) }).where(eq(categories.id, id));
+  await db
+    .update(categories)
+    .set({ name, slug: slugify(name), imageUrl: imageUrl || null })
+    .where(eq(categories.id, id));
   revalidatePath("/admin/categories");
   revalidatePath("/admin/products");
   revalidatePath("/");
