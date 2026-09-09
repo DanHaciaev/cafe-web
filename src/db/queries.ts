@@ -175,7 +175,19 @@ export async function getOpenOrders() {
   const result = [];
   for (const order of openOrders) {
     const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id));
-    result.push({ ...order, items });
+    const itemsWithDetails = [];
+    for (const item of items) {
+      const modifiers = await db
+        .select()
+        .from(orderItemModifiers)
+        .where(eq(orderItemModifiers.orderItemId, item.id));
+      const ingredientChanges = await db
+        .select()
+        .from(orderItemIngredients)
+        .where(eq(orderItemIngredients.orderItemId, item.id));
+      itemsWithDetails.push({ ...item, modifiers, ingredientChanges });
+    }
+    result.push({ ...order, items: itemsWithDetails });
   }
   return result;
 }
