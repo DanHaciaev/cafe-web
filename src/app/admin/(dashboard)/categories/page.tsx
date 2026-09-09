@@ -1,4 +1,4 @@
-import { LayoutGrid, Plus, Trash2, Save } from "lucide-react";
+import { LayoutGrid, Plus, Trash2 } from "lucide-react";
 import { getActiveProducts, getCategories } from "@/db/queries";
 import { createCategory, updateCategory, deleteCategory } from "@/app/admin/actions";
 
@@ -15,49 +15,53 @@ export default async function CategoriesPage() {
         <p className="mt-1 text-sm text-slate-500">Разделы меню кассы.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {categoriesList.map((cat) => (
-          <form
-            key={cat.id}
-            action={updateCategory}
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
-          >
-            <input type="hidden" name="id" value={cat.id} />
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-              <LayoutGrid size={18} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <input
-                name="name"
-                defaultValue={cat.name}
-                className="w-full rounded-md border border-transparent px-1 py-0.5 text-sm font-semibold text-slate-800 outline-none transition-colors hover:border-slate-200 focus:border-indigo-400"
-              />
-              <p className="px-1 text-xs text-slate-400">{countByCategory(cat.id)} товаров</p>
-            </div>
-            <button
-              type="submit"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-300 hover:bg-indigo-50 hover:text-indigo-500"
-              aria-label="Сохранить"
-              title="Сохранить"
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="grid grid-cols-[1fr_110px_130px] gap-4 border-b border-slate-100 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <span>Категория</span>
+          <span>Товаров</span>
+          <span className="text-right">Действия</span>
+        </div>
+        <div className="divide-y divide-slate-100">
+          {categoriesList.map((cat) => (
+            <form
+              key={cat.id}
+              action={updateCategory}
+              className="grid grid-cols-[1fr_110px_130px] items-center gap-4 px-5 py-3"
             >
-              <Save size={16} />
-            </button>
-            <button
-              type="submit"
-              formAction={deleteCategory}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500"
-              aria-label="Удалить"
-              title="Удалить"
-            >
-              <Trash2 size={16} />
-            </button>
-          </form>
-        ))}
-        {categoriesList.length === 0 && (
-          <p className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-400 sm:col-span-2 lg:col-span-3">
-            Категорий пока нет
-          </p>
-        )}
+              <input type="hidden" name="id" value={cat.id} />
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                  <LayoutGrid size={15} />
+                </div>
+                <input
+                  name="name"
+                  defaultValue={cat.name}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-indigo-400"
+                />
+              </div>
+              <span className="text-sm text-slate-500">{countByCategory(cat.id)}</span>
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="submit"
+                  className="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100"
+                >
+                  Сохранить
+                </button>
+                <button
+                  type="submit"
+                  formAction={deleteCategory}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500"
+                  aria-label="Удалить"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </form>
+          ))}
+          {categoriesList.length === 0 && (
+            <p className="px-5 py-8 text-center text-sm text-slate-400">Категорий пока нет</p>
+          )}
+        </div>
       </div>
 
       <form

@@ -132,7 +132,7 @@ export default async function ProductsPage({ searchParams }: Props) {
               min="0"
               placeholder="Цена"
               required
-              className="w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              className="no-spinner w-28 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
             />
             <button
               type="submit"

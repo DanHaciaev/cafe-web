@@ -89,7 +89,7 @@ export default async function ProductEditPage({ params }: { params: Promise<{ id
               step="0.1"
               min="0"
               defaultValue={product.basePrice}
-              className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-indigo-400"
+              className="no-spinner rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-indigo-400"
             />
           </label>
           <label className="flex h-10.5 items-center gap-2 self-end rounded-lg border border-slate-200 px-3 text-sm text-slate-600">

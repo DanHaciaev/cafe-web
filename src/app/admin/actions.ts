@@ -194,6 +194,17 @@ export async function createModifierOption(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function updateModifierOption(formData: FormData) {
+  const id = Number(formData.get("id"));
+  const name = String(formData.get("name") || "").trim();
+  const priceDelta = Number(formData.get("priceDelta") || 0);
+  const isDefault = formData.get("isDefault") === "on";
+  if (!id || !name) return;
+  await db.update(modifierOptions).set({ name, priceDelta, isDefault }).where(eq(modifierOptions.id, id));
+  revalidatePath("/admin/modifiers");
+  revalidatePath("/");
+}
+
 export async function deleteModifierOption(formData: FormData) {
   const id = Number(formData.get("id"));
   if (!id) return;

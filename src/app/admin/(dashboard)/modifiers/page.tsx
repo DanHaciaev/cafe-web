@@ -1,13 +1,12 @@
-import { SlidersHorizontal, Plus, Trash2, Star } from "lucide-react";
-import clsx from "clsx";
+import { SlidersHorizontal, Plus, Trash2, Save } from "lucide-react";
 import { getAllModifierGroupsWithOptions } from "@/db/queries";
 import {
   createModifierGroup,
   deleteModifierGroup,
   createModifierOption,
+  updateModifierOption,
   deleteModifierOption,
 } from "@/app/admin/actions";
-import { formatPrice } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -52,40 +51,74 @@ export default async function ModifiersPage() {
               </form>
             </div>
 
-            <div className="flex flex-col gap-2">
-              {group.options.map((opt) => (
-                <div
-                  key={opt.id}
-                  className={clsx(
-                    "flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 text-sm transition-colors",
-                    opt.isDefault ? "border-indigo-100 bg-indigo-50/50" : "border-slate-100 bg-slate-50"
-                  )}
-                >
-                  <div className="flex min-w-0 items-center gap-2">
-                    {opt.isDefault && <Star size={13} className="shrink-0 fill-indigo-400 text-indigo-400" />}
-                    <span className="truncate font-medium text-slate-700">{opt.name}</span>
-                    {opt.priceDelta > 0 && (
-                      <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-xs text-slate-500 shadow-sm">
-                        +{formatPrice(opt.priceDelta)}
-                      </span>
-                    )}
-                  </div>
-                  <form action={deleteModifierOption}>
-                    <input type="hidden" name="id" value={opt.id} />
-                    <button
-                      type="submit"
-                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500"
-                      aria-label="Удалить вариант"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  </form>
+            {group.options.length > 0 && (
+              <div className="overflow-hidden rounded-xl border border-slate-200">
+                <div className="grid grid-cols-[1fr_92px_60px_72px] gap-2 border-b border-slate-100 bg-slate-50 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                  <span>Вариант</span>
+                  <span>Цена</span>
+                  <span className="text-center">Умолч.</span>
+                  <span></span>
                 </div>
-              ))}
-              {group.options.length === 0 && (
-                <p className="px-1 text-xs text-slate-400">Вариантов пока нет</p>
-              )}
-            </div>
+                <div className="divide-y divide-slate-100">
+                  {group.options.map((opt) => (
+                    <form
+                      key={opt.id}
+                      action={updateModifierOption}
+                      className="grid grid-cols-[1fr_92px_60px_72px] items-center gap-2 px-3 py-2"
+                    >
+                      <input type="hidden" name="id" value={opt.id} />
+                      <input
+                        name="name"
+                        defaultValue={opt.name}
+                        className="w-full rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm outline-none transition-colors focus:border-indigo-400"
+                      />
+                      <div className="flex items-center gap-1">
+                        <input
+                          name="priceDelta"
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          defaultValue={opt.priceDelta}
+                          className="no-spinner w-full min-w-0 rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none transition-colors focus:border-indigo-400"
+                        />
+                      </div>
+                      <label className="flex items-center justify-center">
+                        <input
+                          type="checkbox"
+                          name="isDefault"
+                          defaultChecked={opt.isDefault}
+                          className="h-4 w-4 accent-indigo-500"
+                        />
+                      </label>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="submit"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-indigo-500 transition-colors hover:bg-indigo-50"
+                          aria-label="Сохранить"
+                          title="Сохранить"
+                        >
+                          <Save size={14} />
+                        </button>
+                        <button
+                          type="submit"
+                          formAction={deleteModifierOption}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500"
+                          aria-label="Удалить"
+                          title="Удалить"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </form>
+                  ))}
+                </div>
+              </div>
+            )}
+            {group.options.length === 0 && (
+              <p className="rounded-xl border border-dashed border-slate-200 px-3 py-4 text-center text-xs text-slate-400">
+                Вариантов пока нет
+              </p>
+            )}
 
             <form
               action={createModifierOption}
@@ -105,7 +138,7 @@ export default async function ModifiersPage() {
                 min="0"
                 defaultValue={0}
                 placeholder="Доплата"
-                className="h-9 w-24 rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-indigo-400"
+                className="no-spinner h-9 w-24 rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-indigo-400"
               />
               <label className="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 px-3 text-xs text-slate-500">
                 <input type="checkbox" name="isDefault" className="accent-indigo-500" /> по умолчанию

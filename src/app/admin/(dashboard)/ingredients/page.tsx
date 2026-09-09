@@ -1,4 +1,4 @@
-import { Salad, Plus, Trash2, Save } from "lucide-react";
+import { Salad, Plus, Trash2 } from "lucide-react";
 import { getAllIngredients } from "@/db/queries";
 import { createIngredient, updateIngredient, deleteIngredient } from "@/app/admin/actions";
 
@@ -17,60 +17,63 @@ export default async function IngredientsPage() {
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {ingredientsList.map((ing) => (
-          <form
-            key={ing.id}
-            action={updateIngredient}
-            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
-          >
-            <input type="hidden" name="id" value={ing.id} />
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-              <Salad size={16} />
-            </div>
-            <div className="flex-1 min-w-0 space-y-1">
-              <input
-                name="name"
-                defaultValue={ing.name}
-                className="w-full rounded-md border border-transparent px-1 py-0.5 text-sm font-medium text-slate-800 outline-none transition-colors hover:border-slate-200 focus:border-indigo-400"
-              />
-              <div className="flex items-center gap-1 px-1 text-xs text-slate-400">
-                <span>+</span>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="grid grid-cols-[1fr_180px_130px] gap-4 border-b border-slate-100 bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <span>Ингредиент</span>
+          <span>Цена дополнения</span>
+          <span className="text-right">Действия</span>
+        </div>
+        <div className="divide-y divide-slate-100">
+          {ingredientsList.map((ing) => (
+            <form
+              key={ing.id}
+              action={updateIngredient}
+              className="grid grid-cols-[1fr_180px_130px] items-center gap-4 px-5 py-3"
+            >
+              <input type="hidden" name="id" value={ing.id} />
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <Salad size={15} />
+                </div>
+                <input
+                  name="name"
+                  defaultValue={ing.name}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-indigo-400"
+                />
+              </div>
+              <div className="flex items-center gap-2">
                 <input
                   name="extraPrice"
                   type="number"
                   step="0.1"
                   min="0"
                   defaultValue={ing.extraPrice}
-                  className="w-14 rounded-md border border-transparent px-1 py-0.5 outline-none transition-colors hover:border-slate-200 focus:border-indigo-400"
+                  className="no-spinner w-24 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition-colors focus:border-indigo-400"
                 />
-                <span>MDL за доп.</span>
+                <span className="text-sm text-slate-400">MDL</span>
               </div>
-            </div>
-            <button
-              type="submit"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-300 hover:bg-indigo-50 hover:text-indigo-500"
-              aria-label="Сохранить"
-              title="Сохранить"
-            >
-              <Save size={15} />
-            </button>
-            <button
-              type="submit"
-              formAction={deleteIngredient}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-300 hover:bg-red-50 hover:text-red-500"
-              aria-label="Удалить"
-              title="Удалить"
-            >
-              <Trash2 size={15} />
-            </button>
-          </form>
-        ))}
-        {ingredientsList.length === 0 && (
-          <p className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-400 sm:col-span-2 lg:col-span-3">
-            Ингредиентов пока нет
-          </p>
-        )}
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="submit"
+                  className="rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-600 transition-colors hover:bg-indigo-100"
+                >
+                  Сохранить
+                </button>
+                <button
+                  type="submit"
+                  formAction={deleteIngredient}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500"
+                  aria-label="Удалить"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </form>
+          ))}
+          {ingredientsList.length === 0 && (
+            <p className="px-5 py-8 text-center text-sm text-slate-400">Ингредиентов пока нет</p>
+          )}
+        </div>
       </div>
 
       <form
@@ -90,7 +93,7 @@ export default async function IngredientsPage() {
           min="0"
           defaultValue={0}
           placeholder="Цена как доп."
-          className="w-40 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+          className="no-spinner w-40 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
         />
         <button
           type="submit"
