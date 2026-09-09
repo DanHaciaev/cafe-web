@@ -132,6 +132,17 @@ export async function getAllModifierGroupsWithOptions() {
   return result;
 }
 
+export async function getModifierGroupWithOptions(groupId: number) {
+  const [group] = await db.select().from(modifierGroups).where(eq(modifierGroups.id, groupId));
+  if (!group) return null;
+  const options = await db
+    .select()
+    .from(modifierOptions)
+    .where(eq(modifierOptions.groupId, groupId))
+    .orderBy(modifierOptions.sortOrder);
+  return { ...group, options };
+}
+
 export async function getOrderForReceipt(orderId: number) {
   const [order] = await db.select().from(orders).where(eq(orders.id, orderId));
   if (!order) return null;

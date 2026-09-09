@@ -174,6 +174,18 @@ export async function createModifierGroup(formData: FormData) {
   revalidatePath("/admin/products");
 }
 
+export async function updateModifierGroup(formData: FormData) {
+  const id = Number(formData.get("id"));
+  const name = String(formData.get("name") || "").trim();
+  const selectionType = String(formData.get("selectionType") || "single") as "single" | "multiple";
+  const required = formData.get("required") === "on";
+  if (!id || !name) return;
+  await db.update(modifierGroups).set({ name, selectionType, required }).where(eq(modifierGroups.id, id));
+  revalidatePath("/admin/modifiers");
+  revalidatePath("/admin/products");
+  revalidatePath("/");
+}
+
 export async function deleteModifierGroup(formData: FormData) {
   const id = Number(formData.get("id"));
   if (!id) return;
