@@ -84,6 +84,18 @@ export default function PaymentModal({ total, terminals, onCancel, onConfirm }: 
             <span className="text-sm font-medium text-slate-800">Наличные</span>
           </button>
 
+          {terminals.length === 0 && (
+            <button
+              type="button"
+              onClick={() => onConfirm({ paymentMethod: "card" })}
+              disabled={!!chargingTerminalId}
+              className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 p-4 text-left transition-all hover:border-indigo-300 hover:bg-indigo-50/40 active:scale-[0.99] disabled:opacity-50"
+            >
+              <CreditCard className="text-indigo-600" size={22} />
+              <span className="text-sm font-medium text-slate-800">Карта</span>
+            </button>
+          )}
+
           {terminals.map((t) => (
             <button
               key={t.id}

@@ -145,13 +145,9 @@ export default function PosApp({ categories, products, productDetails, activeLoc
   async function openCharge() {
     if (cart.length === 0 || charging) return;
     const connected = await fetchConnectedTerminals();
-    if (connected.length > 0) {
-      setPaymentTerminals(connected);
-      setPayingOpenOrder(null);
-      setShowPaymentModal(true);
-      return;
-    }
-    createOrder({ paymentMethod: "cash" });
+    setPaymentTerminals(connected);
+    setPayingOpenOrder(null);
+    setShowPaymentModal(true);
   }
 
   async function createOrder(payment: PaymentResult) {
@@ -234,13 +230,9 @@ export default function PosApp({ categories, products, productDetails, activeLoc
 
   async function startPayOpenOrder(order: OpenOrder) {
     const connected = await fetchConnectedTerminals();
-    if (connected.length > 0) {
-      setPaymentTerminals(connected);
-      setPayingOpenOrder(order);
-      setShowPaymentModal(true);
-      return;
-    }
-    payOpenOrder(order, { paymentMethod: "cash" });
+    setPaymentTerminals(connected);
+    setPayingOpenOrder(order);
+    setShowPaymentModal(true);
   }
 
   async function payOpenOrder(order: OpenOrder, payment: PaymentResult) {
