@@ -55,17 +55,22 @@ export default function PaymentModal({ total, terminals, onCancel, onConfirm }: 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-200 p-4">
+    <div className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-[2px]">
+      <div className="animate-modal-in w-full max-w-sm rounded-3xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 p-5">
           <h3 className="text-lg font-semibold text-slate-900">Оплата</h3>
-          <button type="button" onClick={onCancel} className="text-slate-400 hover:text-slate-600" aria-label="Закрыть">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            aria-label="Закрыть"
+          >
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-4 space-y-3">
-          <p className="text-center text-2xl font-bold text-slate-900">{formatPrice(total)}</p>
+        <div className="space-y-3 p-5">
+          <p className="text-center text-3xl font-bold text-slate-900">{formatPrice(total)}</p>
 
           {error && <p className="rounded-lg bg-red-50 p-2 text-center text-sm text-red-600">{error}</p>}
 
@@ -73,7 +78,7 @@ export default function PaymentModal({ total, terminals, onCancel, onConfirm }: 
             type="button"
             onClick={() => onConfirm({ paymentMethod: "cash" })}
             disabled={!!chargingTerminalId}
-            className="flex w-full items-center gap-3 rounded-xl border border-slate-200 p-4 text-left hover:border-indigo-300 disabled:opacity-50"
+            className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 p-4 text-left transition-all hover:border-emerald-300 hover:bg-emerald-50/40 active:scale-[0.99] disabled:opacity-50"
           >
             <Banknote className="text-emerald-600" size={22} />
             <span className="text-sm font-medium text-slate-800">Наличные</span>
@@ -86,8 +91,10 @@ export default function PaymentModal({ total, terminals, onCancel, onConfirm }: 
               onClick={() => payByCard(t)}
               disabled={!!chargingTerminalId}
               className={clsx(
-                "flex w-full items-center gap-3 rounded-xl border p-4 text-left disabled:opacity-50",
-                chargingTerminalId === t.id ? "border-indigo-400" : "border-slate-200 hover:border-indigo-300"
+                "flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition-all active:scale-[0.99] disabled:opacity-50",
+                chargingTerminalId === t.id
+                  ? "border-indigo-400 bg-indigo-50/40"
+                  : "border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/40"
               )}
             >
               <CreditCard className="text-indigo-600" size={22} />

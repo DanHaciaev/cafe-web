@@ -8,7 +8,12 @@ import {
   getCategories,
   getProductDetail,
 } from "@/db/queries";
-import { updateProduct, toggleProductModifierGroup, setProductIngredient } from "@/app/admin/actions";
+import {
+  updateProduct,
+  toggleProductModifierGroup,
+  setProductIngredient,
+  addProductIngredient,
+} from "@/app/admin/actions";
 import AutoSubmitCheckbox from "@/components/admin/AutoSubmitCheckbox";
 import IngredientAssignmentSelect from "@/components/admin/IngredientAssignmentSelect";
 import ProductImageField from "@/components/admin/ProductImageField";
@@ -122,38 +127,77 @@ export default async function ProductEditPage({ params }: { params: Promise<{ id
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="mb-4 flex items-center gap-2">
+        <div className="mb-1 flex items-center gap-2">
           <Salad size={18} className="text-indigo-500" />
           <h2 className="text-sm font-semibold text-slate-900">Ингредиенты</h2>
         </div>
+        <p className="mb-4 text-xs text-slate-400">
+          Только для товаров с редактируемым составом (еда). Напиткам ингредиенты обычно не нужны.
+        </p>
         <div className="flex flex-col gap-2">
-          {allIngredients.map((ing) => {
-            const linked = detail.ingredients.find((i) => i.id === ing.id);
-            const mode = !linked
-              ? "none"
-              : linked.isDefault
-              ? linked.removable
-                ? "default_removable"
-                : "default_fixed"
-              : "extra";
+          {detail.ingredients.map((linked) => {
+            const mode = linked.isDefault ? (linked.removable ? "default_removable" : "default_fixed") : "extra";
             return (
-              <div key={ing.id} className="flex items-center justify-between gap-4 rounded-lg px-2 py-1 hover:bg-slate-50">
-                <span className="text-sm text-slate-700">{ing.name}</span>
+              <div
+                key={linked.id}
+                className="flex items-center justify-between gap-4 rounded-lg px-2 py-1 hover:bg-slate-50"
+              >
+                <span className="text-sm text-slate-700">{linked.name}</span>
                 <IngredientAssignmentSelect
                   action={setProductIngredient}
                   productId={product.id}
-                  ingredientId={ing.id}
+                  ingredientId={linked.id}
                   mode={mode}
                 />
               </div>
             );
           })}
-          {allIngredients.length === 0 && (
+          {detail.ingredients.length === 0 && (
             <p className="text-sm text-slate-400">
-              Ингредиентов пока нет — добавьте их на странице «Ингредиенты»
+              У этого товара пока нет ингредиентов — добавьте нужные ниже.
             </p>
           )}
         </div>
+
+        {(() => {
+          const linkedIds = new Set(detail.ingredients.map((i) => i.id));
+          const available = allIngredients.filter((ing) => !linkedIds.has(ing.id));
+          if (available.length === 0) return null;
+          return (
+            <form
+              action={addProductIngredient}
+              className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4"
+            >
+              <input type="hidden" name="productId" value={product.id} />
+              <select
+                name="ingredientId"
+                required
+                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              >
+                {available.map((ing) => (
+                  <option key={ing.id} value={ing.id}>
+                    {ing.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                name="mode"
+                defaultValue="default_removable"
+                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-indigo-400"
+              >
+                <option value="default_removable">По умолчанию (можно убрать)</option>
+                <option value="default_fixed">По умолчанию (нельзя убрать)</option>
+                <option value="extra">Доступно как дополнение</option>
+              </select>
+              <button
+                type="submit"
+                className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-400"
+              >
+                + Добавить ингредиент
+              </button>
+            </form>
+          );
+        })()}
       </section>
     </div>
   );

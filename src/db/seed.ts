@@ -63,20 +63,20 @@ async function seed() {
   const hotDrinks = await db
     .insert(products)
     .values([
-      { categoryId: hot.id, name: "Мокко латте", basePrice: 55, sortOrder: 1, imageUrl: "/menu/mocha-latte.jpg" },
-      { categoryId: hot.id, name: "Кофе латте", basePrice: 50, sortOrder: 2, imageUrl: "/menu/coffee-latte.jpg" },
-      { categoryId: hot.id, name: "Эспрессо", basePrice: 30, sortOrder: 3, imageUrl: "/menu/espresso.jpg" },
-      { categoryId: hot.id, name: "Чёрный кофе", basePrice: 25, sortOrder: 4, imageUrl: "/menu/original-black.jpg" },
-      { categoryId: hot.id, name: "Мокачино", basePrice: 52, sortOrder: 5, imageUrl: "/menu/mochaccino.jpg" },
+      { categoryId: hot.id, name: "Мокко латте", basePrice: 55, sortOrder: 1 },
+      { categoryId: hot.id, name: "Кофе латте", basePrice: 50, sortOrder: 2 },
+      { categoryId: hot.id, name: "Эспрессо", basePrice: 30, sortOrder: 3 },
+      { categoryId: hot.id, name: "Чёрный кофе", basePrice: 25, sortOrder: 4 },
+      { categoryId: hot.id, name: "Мокачино", basePrice: 52, sortOrder: 5 },
     ])
     .returning();
 
   const coldDrinks = await db
     .insert(products)
     .values([
-      { categoryId: cold.id, name: "Фраппе", basePrice: 60, sortOrder: 1, imageUrl: "/menu/frappe.jpg" },
-      { categoryId: cold.id, name: "Милкшейк", basePrice: 58, sortOrder: 2, imageUrl: "/menu/milkshake.jpg" },
-      { categoryId: cold.id, name: "Айс латте", basePrice: 52, sortOrder: 3, imageUrl: "/menu/iced-latte.jpg" },
+      { categoryId: cold.id, name: "Фраппе", basePrice: 60, sortOrder: 1 },
+      { categoryId: cold.id, name: "Милкшейк", basePrice: 58, sortOrder: 2 },
+      { categoryId: cold.id, name: "Айс латте", basePrice: 52, sortOrder: 3 },
     ])
     .returning();
 
@@ -104,9 +104,9 @@ async function seed() {
   const [sandwich, croissant, muffin] = await db
     .insert(products)
     .values([
-      { categoryId: bakery.id, name: "Сэндвич с ветчиной и сыром", basePrice: 65, sortOrder: 1, imageUrl: "/menu/sandwich.jpg" },
-      { categoryId: bakery.id, name: "Круассан", basePrice: 35, sortOrder: 2, imageUrl: "/menu/croissant.jpg" },
-      { categoryId: bakery.id, name: "Маффин с черникой", basePrice: 40, sortOrder: 3, imageUrl: "/menu/muffin.jpg" },
+      { categoryId: bakery.id, name: "Сэндвич с ветчиной и сыром", basePrice: 65, sortOrder: 1 },
+      { categoryId: bakery.id, name: "Круассан", basePrice: 35, sortOrder: 2 },
+      { categoryId: bakery.id, name: "Маффин с черникой", basePrice: 40, sortOrder: 3 },
     ])
     .returning();
 
@@ -128,21 +128,21 @@ async function seed() {
 
   // --- Cocktail (mocktails) --------------------------------------------------
   await db.insert(products).values([
-    { categoryId: cocktail.id, name: "Мохито безалкогольный", basePrice: 65, sortOrder: 1, imageUrl: "/menu/mojito.jpg" },
-    { categoryId: cocktail.id, name: "Фруктовый пунш", basePrice: 58, sortOrder: 2, imageUrl: "/menu/fruit-punch.jpg" },
+    { categoryId: cocktail.id, name: "Мохито безалкогольный", basePrice: 65, sortOrder: 1 },
+    { categoryId: cocktail.id, name: "Фруктовый пунш", basePrice: 58, sortOrder: 2 },
   ]);
 
   // --- Merchandise -------------------------------------------------------
   await db.insert(products).values([
-    { categoryId: merch.id, name: "Фирменная кружка", basePrice: 140, sortOrder: 1, imageUrl: "/menu/mug.jpg" },
-    { categoryId: merch.id, name: "Термостакан", basePrice: 260, sortOrder: 2, imageUrl: "/menu/tumbler.jpg" },
+    { categoryId: merch.id, name: "Фирменная кружка", basePrice: 140, sortOrder: 1 },
+    { categoryId: merch.id, name: "Термостакан", basePrice: 260, sortOrder: 2 },
   ]);
 
   // --- Gift cards -------------------------------------------------------
   await db.insert(products).values([
-    { categoryId: giftcards.id, name: "Подарочная карта 200 MDL", basePrice: 200, sortOrder: 1, imageUrl: "/menu/giftcard.jpg" },
-    { categoryId: giftcards.id, name: "Подарочная карта 500 MDL", basePrice: 500, sortOrder: 2, imageUrl: "/menu/giftcard.jpg" },
-    { categoryId: giftcards.id, name: "Подарочная карта 1000 MDL", basePrice: 1000, sortOrder: 3, imageUrl: "/menu/giftcard.jpg" },
+    { categoryId: giftcards.id, name: "Подарочная карта 200 MDL", basePrice: 200, sortOrder: 1 },
+    { categoryId: giftcards.id, name: "Подарочная карта 500 MDL", basePrice: 500, sortOrder: 2 },
+    { categoryId: giftcards.id, name: "Подарочная карта 1000 MDL", basePrice: 1000, sortOrder: 3 },
   ]);
 
   console.log("Seed complete.");

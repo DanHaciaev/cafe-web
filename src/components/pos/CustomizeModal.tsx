@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Minus, Plus, X } from "lucide-react";
+import { Coffee, Minus, Plus, X, Check } from "lucide-react";
 import clsx from "clsx";
 import type { ProductDetail } from "@/db/queries";
 import type { Product, CartItem, CartItemModifier, CartItemIngredientChange } from "@/lib/types";
@@ -32,6 +32,7 @@ export default function CustomizeModal({ product, detail, onCancel, onConfirm }:
   });
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState("");
+  const [imageFailed, setImageFailed] = useState(false);
 
   function toggleOption(group: ProductDetail["modifierGroups"][number], optionId: number) {
     setSelectedOptions((prev) => {
@@ -104,24 +105,40 @@ export default function CustomizeModal({ product, detail, onCancel, onConfirm }:
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="flex max-h-[90vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-200 p-4">
-          <h3 className="text-lg font-semibold text-slate-900">{product.name}</h3>
+    <div className="animate-overlay-in absolute inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-6 backdrop-blur-[2px]">
+      <div className="animate-modal-in flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="flex items-center gap-4 border-b border-slate-100 p-5">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-indigo-50 text-indigo-400">
+            {product.imageUrl && !imageFailed ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={product.imageUrl}
+                alt=""
+                className="h-full w-full object-cover"
+                onError={() => setImageFailed(true)}
+              />
+            ) : (
+              <Coffee size={24} />
+            )}
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-semibold text-slate-900">{product.name}</h3>
+            <p className="text-sm text-slate-400">{formatPrice(product.basePrice)}</p>
+          </div>
           <button
             type="button"
             onClick={onCancel}
-            className="text-slate-400 hover:text-slate-600"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
             aria-label="Закрыть"
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <div className="flex-1 space-y-7 overflow-y-auto p-5">
           {detail.modifierGroups.map((group) => (
             <div key={group.id}>
-              <p className="mb-2 text-sm font-semibold text-slate-700">
+              <p className="mb-3 text-sm font-semibold text-slate-700">
                 {group.name}
                 {group.required && <span className="ml-1 text-red-500">*</span>}
               </p>
@@ -134,14 +151,19 @@ export default function CustomizeModal({ product, detail, onCancel, onConfirm }:
                       type="button"
                       onClick={() => toggleOption(group, option.id)}
                       className={clsx(
-                        "rounded-full border px-4 py-2 text-sm transition-colors",
+                        "flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-sm font-medium transition-all active:scale-95",
                         isSelected
-                          ? "border-indigo-500 bg-indigo-500 text-white"
-                          : "border-slate-200 text-slate-600 hover:border-indigo-300"
+                          ? "border-indigo-500 bg-indigo-500 text-white shadow-sm shadow-indigo-200"
+                          : "border-slate-200 text-slate-600 hover:border-indigo-300 hover:bg-indigo-50/50"
                       )}
                     >
+                      {isSelected && <Check size={14} />}
                       {option.name}
-                      {option.priceDelta > 0 && ` +${formatPrice(option.priceDelta)}`}
+                      {option.priceDelta > 0 && (
+                        <span className={isSelected ? "text-indigo-100" : "text-slate-400"}>
+                          +{formatPrice(option.priceDelta)}
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -151,30 +173,35 @@ export default function CustomizeModal({ product, detail, onCancel, onConfirm }:
 
           {detail.ingredients.length > 0 && (
             <div>
-              <p className="mb-2 text-sm font-semibold text-slate-700">Ингредиенты</p>
-              <div className="flex flex-col gap-2">
-                {detail.ingredients.map((ing) => (
-                  <label
-                    key={ing.id}
-                    className={clsx(
-                      "flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm",
-                      !ing.removable && "opacity-60"
-                    )}
-                  >
-                    <span className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={!!ingredientState[ing.id]}
-                        disabled={!ing.removable}
-                        onChange={() => toggleIngredient(ing.id, ing.removable)}
-                      />
-                      {ing.name}
-                    </span>
-                    {!ing.isDefault && ing.extraPrice > 0 && (
-                      <span className="text-slate-400">+{formatPrice(ing.extraPrice)}</span>
-                    )}
-                  </label>
-                ))}
+              <p className="mb-3 text-sm font-semibold text-slate-700">Ингредиенты</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {detail.ingredients.map((ing) => {
+                  const checked = !!ingredientState[ing.id];
+                  return (
+                    <label
+                      key={ing.id}
+                      className={clsx(
+                        "flex cursor-pointer items-center justify-between rounded-xl border px-3.5 py-2.5 text-sm transition-colors",
+                        !ing.removable && "cursor-default opacity-60",
+                        checked ? "border-indigo-200 bg-indigo-50/60" : "border-slate-200 hover:border-slate-300"
+                      )}
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          disabled={!ing.removable}
+                          onChange={() => toggleIngredient(ing.id, ing.removable)}
+                          className="h-4 w-4 accent-indigo-500"
+                        />
+                        {ing.name}
+                      </span>
+                      {!ing.isDefault && ing.extraPrice > 0 && (
+                        <span className="text-slate-400">+{formatPrice(ing.extraPrice)}</span>
+                      )}
+                    </label>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -186,25 +213,25 @@ export default function CustomizeModal({ product, detail, onCancel, onConfirm }:
               onChange={(e) => setNote(e.target.value)}
               rows={2}
               placeholder="Например: без льда"
-              className="w-full rounded-lg border border-slate-200 p-2 text-sm outline-none focus:border-indigo-400"
+              className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition-colors focus:border-indigo-400"
             />
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-4 border-t border-slate-200 p-4">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-4 border-t border-slate-100 bg-slate-50/60 p-5">
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-100 active:scale-95"
             >
               <Minus size={14} />
             </button>
-            <span className="w-6 text-center text-sm font-medium">{quantity}</span>
+            <span className="w-6 text-center text-base font-semibold">{quantity}</span>
             <button
               type="button"
               onClick={() => setQuantity((q) => q + 1)}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-100 active:scale-95"
             >
               <Plus size={14} />
             </button>
@@ -214,9 +241,9 @@ export default function CustomizeModal({ product, detail, onCancel, onConfirm }:
             disabled={!requiredGroupsSatisfied}
             onClick={handleConfirm}
             className={clsx(
-              "flex-1 rounded-xl py-3 text-sm font-semibold text-white transition-colors",
+              "flex-1 rounded-xl py-3.5 text-sm font-semibold text-white transition-all active:scale-[0.99]",
               requiredGroupsSatisfied
-                ? "bg-indigo-500 hover:bg-indigo-400"
+                ? "bg-indigo-500 shadow-sm shadow-indigo-200 hover:bg-indigo-400"
                 : "bg-slate-300 cursor-not-allowed"
             )}
           >

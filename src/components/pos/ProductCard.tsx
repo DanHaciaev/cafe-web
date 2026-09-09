@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Coffee } from "lucide-react";
 import clsx from "clsx";
 import type { Product } from "@/lib/types";
@@ -12,14 +13,15 @@ type Props = {
 };
 
 function ProductThumb({ product, size }: { product: Product; size: number }) {
-  if (product.imageUrl) {
+  const [failed, setFailed] = useState(false);
+  if (product.imageUrl && !failed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={product.imageUrl}
         alt=""
         className="h-full w-full object-cover"
-        style={{ width: size, height: size }}
+        onError={() => setFailed(true)}
       />
     );
   }
@@ -32,7 +34,7 @@ export default function ProductCard({ product, view, onClick }: Props) {
       <button
         type="button"
         onClick={onClick}
-        className="flex items-center gap-4 rounded-xl bg-white p-3 text-left shadow-sm hover:shadow-md transition-shadow"
+        className="flex items-center gap-4 rounded-xl bg-white p-3 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
       >
         <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-slate-400">
           <ProductThumb product={product} size={56} />
@@ -50,7 +52,7 @@ export default function ProductCard({ product, view, onClick }: Props) {
       type="button"
       onClick={onClick}
       className={clsx(
-        "flex flex-col items-center gap-3 rounded-xl bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
+        "flex flex-col items-center gap-3 rounded-xl bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
       )}
     >
       <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-slate-400">

@@ -274,7 +274,7 @@ export default function PosApp({ categories, products, productDetails }: Props) 
         selectedCategoryId={selectedCategoryId}
         onSelect={setSelectedCategoryId}
       />
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="relative flex flex-1 flex-col overflow-hidden">
         <TopBar
           search={search}
           onSearchChange={setSearch}
@@ -284,6 +284,14 @@ export default function PosApp({ categories, products, productDetails }: Props) 
           onOpenOrdersClick={openOpenOrdersModal}
         />
         <ProductGrid products={filteredProducts} view={view} onProductClick={handleProductClick} />
+        {modalProduct && modalDetail && (
+          <CustomizeModal
+            product={modalProduct}
+            detail={modalDetail}
+            onCancel={() => setModalProductId(null)}
+            onConfirm={addCustomizedItem}
+          />
+        )}
       </div>
       <TicketPanel
         cart={cart}
@@ -297,14 +305,6 @@ export default function PosApp({ categories, products, productDetails }: Props) 
         lastOrderNumber={lastOrderNumber}
         printStatus={printStatus}
       />
-      {modalProduct && modalDetail && (
-        <CustomizeModal
-          product={modalProduct}
-          detail={modalDetail}
-          onCancel={() => setModalProductId(null)}
-          onConfirm={addCustomizedItem}
-        />
-      )}
       {showOpenOrdersModal && (
         <OpenOrdersModal
           orders={openOrders}

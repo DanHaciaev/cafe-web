@@ -184,6 +184,19 @@ export async function deleteModifierOption(formData: FormData) {
 
 // --- Product <-> ingredients -----------------------------------------
 
+export async function addProductIngredient(formData: FormData) {
+  const productId = Number(formData.get("productId"));
+  const ingredientId = Number(formData.get("ingredientId"));
+  const mode = String(formData.get("mode") || "extra");
+  if (!productId || !ingredientId) return;
+
+  const isDefault = mode !== "extra";
+  const removable = mode !== "default_fixed";
+  await db.insert(productIngredients).values({ productId, ingredientId, isDefault, removable });
+  revalidatePath(`/admin/products/${productId}`);
+  revalidatePath("/");
+}
+
 export async function setProductIngredient(formData: FormData) {
   const productId = Number(formData.get("productId"));
   const ingredientId = Number(formData.get("ingredientId"));

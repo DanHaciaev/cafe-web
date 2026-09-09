@@ -27,23 +27,31 @@ type Props = {
 
 export default function OpenOrdersModal({ orders, loading, onClose, onPay }: Props) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-      <div className="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-white shadow-xl">
-        <div className="flex items-center justify-between border-b border-slate-200 p-4">
+    <div className="animate-overlay-in fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-[2px]">
+      <div className="animate-modal-in flex max-h-[85vh] w-full max-w-lg flex-col rounded-3xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 p-5">
           <h3 className="text-lg font-semibold text-slate-900">Открытые заказы</h3>
-          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600" aria-label="Закрыть">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            aria-label="Закрыть"
+          >
             <X size={20} />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-5">
           {loading && <p className="text-center text-sm text-slate-400">Загрузка...</p>}
           {!loading && orders.length === 0 && (
             <p className="text-center text-sm text-slate-400">Отложенных заказов нет</p>
           )}
           <div className="flex flex-col gap-3">
             {orders.map((order) => (
-              <div key={order.id} className="rounded-xl border border-slate-200 p-4">
+              <div
+                key={order.id}
+                className="rounded-2xl border border-slate-200 p-4 transition-shadow hover:shadow-sm"
+              >
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-sm font-bold text-slate-900">#{order.number}</span>
                   <span className="flex items-center gap-1 text-xs text-slate-400">
@@ -63,7 +71,7 @@ export default function OpenOrdersModal({ orders, loading, onClose, onPay }: Pro
                   <button
                     type="button"
                     onClick={() => onPay(order)}
-                    className="flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-400"
+                    className="flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-indigo-400 active:scale-95"
                   >
                     <CreditCard size={14} />
                     Оплатить
