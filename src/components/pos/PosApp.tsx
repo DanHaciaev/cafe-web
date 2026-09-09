@@ -20,6 +20,7 @@ type Props = {
 };
 
 export default function PosApp({ categories, products, productDetails }: Props) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | "all">("all");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
@@ -280,6 +281,8 @@ export default function PosApp({ categories, products, productDetails }: Props) 
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onSelect={setSelectedCategoryId}
+        collapsed={sidebarCollapsed}
+        onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
       />
       <div className="relative flex flex-1 flex-col overflow-hidden">
         <TopBar
