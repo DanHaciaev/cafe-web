@@ -103,18 +103,10 @@ export default function Sidebar({
               type="button"
               onClick={() => onSelect(cat.id)}
               className={clsx(
-                "flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-colors",
+                "rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors",
                 selectedCategoryId === cat.id ? "bg-white text-[#1e1b4b]" : "text-indigo-100 hover:bg-white/10"
               )}
             >
-              <span
-                className={clsx(
-                  "flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md text-[10px] font-semibold uppercase",
-                  selectedCategoryId === cat.id ? "bg-indigo-50 text-[#1e1b4b]" : "bg-white/10 text-indigo-100"
-                )}
-              >
-                <CategoryThumb imageUrl={cat.imageUrl} fallback={cat.name.slice(0, 2)} />
-              </span>
               {cat.name}
             </button>
           ))}
