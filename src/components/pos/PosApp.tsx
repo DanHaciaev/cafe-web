@@ -9,7 +9,8 @@ import ProductGrid from "./ProductGrid";
 import TicketPanel from "./TicketPanel";
 import CustomizeModal from "./CustomizeModal";
 import PaymentModal, { type PaymentResult, type ReceiptLine } from "./PaymentModal";
-import OpenOrdersModal, { type OpenOrder } from "./OpenOrdersModal";
+import OpenOrdersModal, { type OpenOrder, type TodayOrder } from "./OpenOrdersModal";
+import RefundModal from "./RefundModal";
 import { tryLocalAgentPrint } from "@/lib/print";
 import { PRINT_AGENT_URL } from "@/lib/agentUrl";
 
@@ -67,6 +68,9 @@ export default function PosApp({ categories, products, productDetails, activeLoc
   const [loadingOpenOrders, setLoadingOpenOrders] = useState(false);
   const [showOpenOrdersModal, setShowOpenOrdersModal] = useState(false);
   const [payingOpenOrder, setPayingOpenOrder] = useState<OpenOrder | null>(null);
+  const [todayOrders, setTodayOrders] = useState<TodayOrder[]>([]);
+  const [loadingTodayOrders, setLoadingTodayOrders] = useState(false);
+  const [refundingOrder, setRefundingOrder] = useState<TodayOrder | null>(null);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -160,6 +164,16 @@ export default function PosApp({ categories, products, productDetails, activeLoc
       setOpenOrders(await res.json());
     } catch {
       // Ignore — badge just stays at its last known count.
+    }
+  }, []);
+
+  const refreshTodayOrders = useCallback(async () => {
+    try {
+      const res = await fetch("/api/orders/today");
+      if (!res.ok) return;
+      setTodayOrders(await res.json());
+    } catch {
+      // Ignore — the "Сегодня" tab just stays at its last known state.
     }
   }, []);
 
@@ -259,8 +273,20 @@ export default function PosApp({ categories, products, productDetails, activeLoc
   async function openOpenOrdersModal() {
     setShowOpenOrdersModal(true);
     setLoadingOpenOrders(true);
-    await refreshOpenOrders();
+    setLoadingTodayOrders(true);
+    await Promise.all([refreshOpenOrders(), refreshTodayOrders()]);
     setLoadingOpenOrders(false);
+    setLoadingTodayOrders(false);
+  }
+
+  async function handleRefunded() {
+    // Refetch rather than patch client-side state — the response only has
+    // the order-level totals, not each item's updated refundedQuantity
+    // (needed for the "Возвращено: N" labels and to cap further refunds).
+    await refreshTodayOrders();
+    setRefundingOrder(null);
+    setPrintStatus("Возврат оформлен");
+    setLastPrintUrl(null);
   }
 
   async function startPayOpenOrder(order: OpenOrder) {
@@ -335,9 +361,19 @@ export default function PosApp({ categories, products, productDetails, activeLoc
         {showOpenOrdersModal && (
           <OpenOrdersModal
             orders={openOrders}
+            todayOrders={todayOrders}
             loading={loadingOpenOrders}
+            loadingToday={loadingTodayOrders}
             onClose={() => setShowOpenOrdersModal(false)}
             onPay={startPayOpenOrder}
+            onRefund={setRefundingOrder}
+          />
+        )}
+        {refundingOrder && (
+          <RefundModal
+            order={refundingOrder}
+            onCancel={() => setRefundingOrder(null)}
+            onRefunded={handleRefunded}
           />
         )}
       </div>

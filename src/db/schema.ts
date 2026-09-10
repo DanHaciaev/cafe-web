@@ -118,6 +118,13 @@ export const orders = sqliteTable("orders", {
   total: real("total").notNull().default(0),
   paymentMethod: text("payment_method"),
   cardTransactionId: text("card_transaction_id"),
+  // Sum of refunded line amounts (see orderItems.refundedQuantity) — kept as
+  // a running total on the order itself so revenue queries can do
+  // `total - refundedAmount` without re-joining/summing order_items every
+  // time. Reaching >= total flips status to "cancelled" (see the refund
+  // API route) so a fully-refunded order drops out of "paid" revenue the
+  // same way a never-paid one would.
+  refundedAmount: real("refunded_amount").notNull().default(0),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(current_timestamp)`),
@@ -135,6 +142,11 @@ export const orderItems = sqliteTable("order_items", {
   name: text("name").notNull(),
   unitPrice: real("unit_price").notNull(),
   quantity: integer("quantity").notNull().default(1),
+  // How many of this line's `quantity` have been refunded (e.g. 1 of 2
+  // croissants came back bad) — never exceeds quantity. Refunding the
+  // whole line still leaves the row in place so the receipt/order history
+  // keeps showing what was originally ordered.
+  refundedQuantity: integer("refunded_quantity").notNull().default(0),
   note: text("note"),
 });
 

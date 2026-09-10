@@ -1,4 +1,4 @@
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { db } from "./client";
 import { parseSqliteUtcDate } from "@/lib/date";
 import {
@@ -203,6 +203,47 @@ export async function getOpenOrders() {
   return result;
 }
 
+// Paid (and already-refunded/cancelled) orders from today, for the cassa's
+// "Сегодня" tab where a cashier can issue a refund on a specific item —
+// unlike getOpenOrders() this never needs orders older than today, so a
+// generous UTC lower bound plus a JS-side filter to the real Chisinau
+// calendar day (same approach as getAnalytics) is enough, no need for a
+// dedicated date-range query.
+export async function getTodayOrders() {
+  const sqlLowerBound = new Date(Date.now() - 2 * 86400000)
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ");
+  const todayKey = chisinauDateKey(new Date());
+
+  const rows = await db
+    .select()
+    .from(orders)
+    .where(and(sql`${orders.status} in ('paid', 'cancelled')`, gte(orders.createdAt, sqlLowerBound)))
+    .orderBy(desc(orders.createdAt));
+
+  const todaysOrders = rows.filter((o) => chisinauDateKey(parseSqliteUtcDate(o.createdAt)) === todayKey);
+
+  const result = [];
+  for (const order of todaysOrders) {
+    const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order.id));
+    const itemsWithDetails = [];
+    for (const item of items) {
+      const modifiers = await db
+        .select()
+        .from(orderItemModifiers)
+        .where(eq(orderItemModifiers.orderItemId, item.id));
+      const ingredientChanges = await db
+        .select()
+        .from(orderItemIngredients)
+        .where(eq(orderItemIngredients.orderItemId, item.id));
+      itemsWithDetails.push({ ...item, modifiers, ingredientChanges });
+    }
+    result.push({ ...order, items: itemsWithDetails });
+  }
+  return result;
+}
+
 export async function getTodayStats() {
   const [row] = await db
     .select({
@@ -300,6 +341,7 @@ export async function getAnalytics(range: AnalyticsRange, locationId?: number): 
     .select({
       id: orders.id,
       total: orders.total,
+      refundedAmount: orders.refundedAmount,
       paymentMethod: orders.paymentMethod,
       createdAt: orders.createdAt,
       locationId: orders.locationId,
@@ -326,22 +368,25 @@ export async function getAnalytics(range: AnalyticsRange, locationId?: number): 
   const locationMap = new Map<number | null, { revenue: number; orderCount: number }>();
 
   for (const order of inRange) {
-    totalRevenue += order.total;
-    if (order.paymentMethod === "card") cardRevenue += order.total;
-    else cashRevenue += order.total;
+    // Net of any partial refund — a fully-refunded order already dropped
+    // out of this "paid"-only query entirely (see the refund API route).
+    const netAmount = order.total - order.refundedAmount;
+    totalRevenue += netAmount;
+    if (order.paymentMethod === "card") cardRevenue += netAmount;
+    else cashRevenue += netAmount;
 
     const date = parseSqliteUtcDate(order.createdAt);
     const dayKey = chisinauDateKey(date);
-    dailyMap.set(dayKey, (dailyMap.get(dayKey) ?? 0) + order.total);
+    dailyMap.set(dayKey, (dailyMap.get(dayKey) ?? 0) + netAmount);
 
     const hour = chisinauHour(date);
     const hourEntry = hourlyMap.get(hour) ?? { revenue: 0, count: 0 };
-    hourEntry.revenue += order.total;
+    hourEntry.revenue += netAmount;
     hourEntry.count += 1;
     hourlyMap.set(hour, hourEntry);
 
     const locEntry = locationMap.get(order.locationId) ?? { revenue: 0, orderCount: 0 };
-    locEntry.revenue += order.total;
+    locEntry.revenue += netAmount;
     locEntry.orderCount += 1;
     locationMap.set(order.locationId, locEntry);
   }
@@ -364,16 +409,18 @@ export async function getAnalytics(range: AnalyticsRange, locationId?: number): 
   const orderIds = inRange.map((o) => o.id);
   let topProducts: { name: string; quantity: number; revenue: number }[] = [];
   if (orderIds.length > 0) {
+    // (quantity - refundedQuantity) throughout — a refunded croissant
+    // shouldn't still count toward "top products" or its revenue.
     const rows = await db
       .select({
         name: orderItems.name,
-        quantity: sql<number>`sum(${orderItems.quantity})`,
-        revenue: sql<number>`sum(${orderItems.unitPrice} * ${orderItems.quantity})`,
+        quantity: sql<number>`sum(${orderItems.quantity} - ${orderItems.refundedQuantity})`,
+        revenue: sql<number>`sum(${orderItems.unitPrice} * (${orderItems.quantity} - ${orderItems.refundedQuantity}))`,
       })
       .from(orderItems)
       .where(sql`${orderItems.orderId} in (${sql.join(orderIds, sql`, `)})`)
       .groupBy(orderItems.name)
-      .orderBy(sql`sum(${orderItems.unitPrice} * ${orderItems.quantity}) desc`)
+      .orderBy(sql`sum(${orderItems.unitPrice} * (${orderItems.quantity} - ${orderItems.refundedQuantity})) desc`)
       .limit(10);
     topProducts = rows;
   }
