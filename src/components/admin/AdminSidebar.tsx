@@ -15,6 +15,7 @@ import {
   Settings,
   LogOut,
   ArrowLeft,
+  Undo2,
 } from "lucide-react";
 import { logout } from "@/app/admin/login/actions";
 
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { href: "/admin/categories", label: "Категории", icon: LayoutGrid },
   { href: "/admin/ingredients", label: "Ингредиенты", icon: Salad },
   { href: "/admin/locations", label: "Точки", icon: MapPin },
+  { href: "/admin/refunds", label: "Возвраты", icon: Undo2 },
   { href: "/admin/terminal", label: "Терминал", icon: CreditCard },
   { href: "/admin/settings", label: "Настройки", icon: Settings },
 ];

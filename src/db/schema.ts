@@ -172,3 +172,35 @@ export const orderItemIngredients = sqliteTable("order_item_ingredients", {
   action: text("action", { enum: ["removed", "added"] }).notNull(),
   priceDelta: real("price_delta").notNull().default(0),
 });
+
+// One refund event — a cashier can select several order_items at once (see
+// refundItems below) and submits them together with a single reason, so
+// this is the audit-trail row admin sees in /admin/refunds, not
+// orders.refundedAmount itself (that's just the running total used for
+// revenue math).
+export const refunds = sqliteTable("refunds", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  orderId: integer("order_id")
+    .notNull()
+    .references(() => orders.id, { onDelete: "cascade" }),
+  amount: real("amount").notNull(),
+  reason: text("reason"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+// Which order_item(s) a refund covered and how much of each — orderItemId
+// is kept (not just a name snapshot) so /admin/refunds can join back to
+// orderItems for the item's name/price without duplicating it here.
+export const refundItems = sqliteTable("refund_items", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  refundId: integer("refund_id")
+    .notNull()
+    .references(() => refunds.id, { onDelete: "cascade" }),
+  orderItemId: integer("order_item_id")
+    .notNull()
+    .references(() => orderItems.id, { onDelete: "cascade" }),
+  quantity: integer("quantity").notNull(),
+  amount: real("amount").notNull(),
+});

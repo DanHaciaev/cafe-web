@@ -12,8 +12,11 @@ type Props = {
   onRefunded: () => void;
 };
 
+const REASON_PRESETS = ["Плохое качество", "Ошибка кассира", "Клиент передумал", "Долгое ожидание"];
+
 export default function RefundModal({ order, onCancel, onRefunded }: Props) {
   const [selectedQty, setSelectedQty] = useState<Record<number, number>>({});
+  const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,9 +38,10 @@ export default function RefundModal({ order, onCancel, onRefunded }: Props) {
 
   const refundTotal = lines.reduce((sum, l) => sum + l.unitPrice * (selectedQty[l.item.id] ?? 0), 0);
   const hasSelection = refundTotal > 0;
+  const hasReason = reason.trim() !== "";
 
   async function submit() {
-    if (!hasSelection || submitting) return;
+    if (!hasSelection || !hasReason || submitting) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -47,7 +51,7 @@ export default function RefundModal({ order, onCancel, onRefunded }: Props) {
       const res = await fetch(`/api/orders/${order.id}/refund`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ items, reason: reason.trim() }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -132,6 +136,38 @@ export default function RefundModal({ order, onCancel, onRefunded }: Props) {
               </div>
             );
           })}
+
+          {hasSelection && (
+            <div className="pt-3">
+              <p className="mb-2 text-sm font-semibold text-slate-700">
+                Причина возврата <span className="text-red-500">*</span>
+              </p>
+              <div className="mb-2 flex flex-wrap gap-2">
+                {REASON_PRESETS.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setReason(preset)}
+                    className={clsx(
+                      "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
+                      reason === preset
+                        ? "border-red-400 bg-red-50 text-red-600"
+                        : "border-slate-200 text-slate-600 hover:border-red-200 hover:bg-red-50/50"
+                    )}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={2}
+                placeholder="Например: пирожное было несвежим"
+                className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none transition-colors focus:border-red-300"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -143,11 +179,11 @@ export default function RefundModal({ order, onCancel, onRefunded }: Props) {
           <span className="text-2xl font-bold text-slate-900">{formatPrice(refundTotal)}</span>
           <button
             type="button"
-            disabled={!hasSelection || submitting}
+            disabled={!hasSelection || !hasReason || submitting}
             onClick={submit}
             className={clsx(
               "rounded-xl px-6 py-3.5 text-sm font-semibold text-white transition-all active:scale-[0.99]",
-              hasSelection && !submitting
+              hasSelection && hasReason && !submitting
                 ? "bg-red-500 shadow-sm shadow-red-200 hover:bg-red-400"
                 : "cursor-not-allowed bg-slate-300"
             )}

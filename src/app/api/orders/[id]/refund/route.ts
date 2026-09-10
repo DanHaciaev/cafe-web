@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/client";
-import { orders, orderItems, orderItemModifiers, orderItemIngredients } from "@/db/schema";
+import { orders, orderItems, orderItemModifiers, orderItemIngredients, refunds, refundItems } from "@/db/schema";
 
 const refundSchema = z.object({
   items: z.array(z.object({ orderItemId: z.number(), quantity: z.number().int().positive() })).min(1),
+  reason: z.string().trim().min(1, "Укажите причину возврата"),
 });
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -27,6 +28,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   let refundTotal = 0;
+  const lineAmounts: { orderItemId: number; quantity: number; amount: number }[] = [];
   for (const line of parsed.data.items) {
     const [item] = await db.select().from(orderItems).where(eq(orderItems.id, line.orderItemId));
     if (!item || item.orderId !== orderId) {
@@ -51,7 +53,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const modifiersTotal = modifiers.reduce((s, m) => s + m.priceDelta, 0);
     const ingredientsTotal = ingredientChanges.reduce((s, c) => s + c.priceDelta, 0);
     const unitPrice = item.unitPrice + modifiersTotal + ingredientsTotal;
-    refundTotal += unitPrice * line.quantity;
+    const lineAmount = unitPrice * line.quantity;
+    refundTotal += lineAmount;
+    lineAmounts.push({ orderItemId: item.id, quantity: line.quantity, amount: lineAmount });
 
     await db
       .update(orderItems)
@@ -71,6 +75,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     .set({ refundedAmount, status: fullyRefunded ? "cancelled" : order.status })
     .where(eq(orders.id, orderId))
     .returning();
+
+  // The audit-trail row admin sees in /admin/refunds — separate from
+  // orders.refundedAmount, which is just the running total used for
+  // revenue math and doesn't carry a reason or a per-item breakdown.
+  const [refund] = await db
+    .insert(refunds)
+    .values({ orderId, amount: refundTotal, reason: parsed.data.reason })
+    .returning();
+  await db.insert(refundItems).values(
+    lineAmounts.map((l) => ({
+      refundId: refund.id,
+      orderItemId: l.orderItemId,
+      quantity: l.quantity,
+      amount: l.amount,
+    }))
+  );
 
   return NextResponse.json(updated);
 }

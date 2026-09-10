@@ -14,6 +14,8 @@ import {
   orderItemModifiers,
   orderItemIngredients,
   locations,
+  refunds,
+  refundItems,
 } from "./schema";
 
 export async function getCategories() {
@@ -240,6 +242,48 @@ export async function getTodayOrders() {
       itemsWithDetails.push({ ...item, modifiers, ingredientChanges });
     }
     result.push({ ...order, items: itemsWithDetails });
+  }
+  return result;
+}
+
+// Audit trail for /admin/refunds — every refund event (who got what back
+// and why), not just the running refundedAmount total on orders used for
+// revenue math elsewhere.
+export async function getRefunds(limit = 200) {
+  const rows = await db
+    .select({
+      id: refunds.id,
+      orderId: refunds.orderId,
+      orderNumber: orders.number,
+      locationId: orders.locationId,
+      amount: refunds.amount,
+      reason: refunds.reason,
+      createdAt: refunds.createdAt,
+    })
+    .from(refunds)
+    .innerJoin(orders, eq(refunds.orderId, orders.id))
+    .orderBy(desc(refunds.createdAt))
+    .limit(limit);
+
+  const allLocations = await getLocations();
+  const locationNames = new Map(allLocations.map((l) => [l.id, l.name]));
+
+  const result = [];
+  for (const r of rows) {
+    const items = await db
+      .select({
+        quantity: refundItems.quantity,
+        amount: refundItems.amount,
+        name: orderItems.name,
+      })
+      .from(refundItems)
+      .innerJoin(orderItems, eq(refundItems.orderItemId, orderItems.id))
+      .where(eq(refundItems.refundId, r.id));
+    result.push({
+      ...r,
+      locationName: r.locationId ? (locationNames.get(r.locationId) ?? `Точка #${r.locationId}`) : "Без точки",
+      items,
+    });
   }
   return result;
 }

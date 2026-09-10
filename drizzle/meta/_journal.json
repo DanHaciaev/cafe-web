@@ -43,6 +43,13 @@
       "when": 1789046871369,
       "tag": "0005_parallel_living_tribunal",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1789048206199,
+      "tag": "0006_volatile_spitfire",
+      "breakpoints": true
     }
   ]
 }
