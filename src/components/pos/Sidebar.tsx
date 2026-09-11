@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, MapPin } from "lucide-react";
+import Link from "next/link";
+import { Menu, MapPin, HelpCircle } from "lucide-react";
 import clsx from "clsx";
 import type { Category } from "@/lib/types";
 import { switchLocation } from "@/app/select-location/actions";
@@ -115,6 +116,20 @@ export default function Sidebar({
           ))}
         </nav>
       )}
+
+      <div className={clsx("border-t border-white/10 p-3", collapsed && "flex justify-center")}>
+        <Link
+          href="/help"
+          title="Справка"
+          className={clsx(
+            "flex items-center gap-2.5 rounded-lg text-indigo-100 transition-colors hover:bg-white/10",
+            collapsed ? "h-11 w-11 justify-center" : "w-full px-3 py-2.5"
+          )}
+        >
+          <HelpCircle size={18} className="shrink-0" />
+          {!collapsed && <span className="text-sm font-semibold">Справка</span>}
+        </Link>
+      </div>
 
       {activeLocation && (
         <div className={clsx("border-t border-white/10 p-3", collapsed && "flex justify-center")}>

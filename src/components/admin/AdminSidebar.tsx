@@ -16,6 +16,7 @@ import {
   LogOut,
   ArrowLeft,
   Undo2,
+  HelpCircle,
 } from "lucide-react";
 import { logout } from "@/app/admin/login/actions";
 
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { href: "/admin/refunds", label: "Возвраты", icon: Undo2 },
   { href: "/admin/terminal", label: "Терминал", icon: CreditCard },
   { href: "/admin/settings", label: "Настройки", icon: Settings },
+  { href: "/admin/help", label: "Справка", icon: HelpCircle },
 ];
 
 export default function AdminSidebar() {
