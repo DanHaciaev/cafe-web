@@ -46,6 +46,12 @@ export default async function SelectLocationPage({ searchParams }: Props) {
                 inputMode="numeric"
                 autoFocus
                 required
+                // Pre-filled for the director's first walkthrough, per explicit
+                // request after being told this puts the PIN in the page's
+                // HTML source (visible via view-source to anyone who opens
+                // this URL, not just whoever's holding the till). Remove once
+                // that's no longer needed — it's a real credential leak.
+                defaultValue={selected.name === "Ciocana" ? "ciocana20226!" : undefined}
                 className="rounded-xl border border-slate-200 px-4 py-3 text-center text-lg tracking-widest outline-none focus:border-indigo-400"
               />
             </label>

@@ -37,6 +37,12 @@ export default async function AdminLoginPage({ searchParams }: Props) {
                 name="password"
                 autoFocus
                 required
+                // Pre-filled for the director's first walkthrough, per explicit
+                // request after being told this puts the password in the
+                // page's HTML source (visible via view-source to anyone who
+                // opens this URL). Remove once that's no longer needed — it's
+                // a real credential leak.
+                defaultValue="admin2026!"
                 className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-indigo-400"
               />
             </label>
